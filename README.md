@@ -1,9 +1,7 @@
-# JunPro-Kelompok
-Membuat aplikasi sesuai dengan penugasan Junior Project
+# TRASHURY
+Aplikasi kasir dan manajemen database lokal berbasis desktop untuk memodernisasi operasional bank sampah kalurahan tanpa ketergantungan internet penuh.
 
-#NAMA APLIKASI 
-deskripsi singkat aplikasi 
-NAMA KELOMPOK ANDA 
+Kelompok Keren
 Ketua Kelompok: Muhammad Afiq Mirza Choiruzan
 Anggota 1: Muhammad Afiq Mirza Choiruzan
 Anggota 2: Wangsit Nursyahada
