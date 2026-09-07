@@ -49,4 +49,10 @@ Anggota 2: Bintang Daneswara-24/541599/TK/60084
 
 **Cohesion.** Tiap class mengurus satu urusan: `KategoriSampah` hanya menghitung nilai dan emisi, `LayananLaporan` hanya mengurus pelaporan.
 
+<<<<<<< HEAD
 **Sufficiency, completeness, primitiveness.** Operasi dipecah ke satuan terkecil,
+=======
+**Sufficiency, completeness, primitiveness.** Operasi dipecah ke satuan
+terkecil, misalnya `KategoriSampah.HitungNilai()` dipanggil kembali oleh
+`DetailSetoran` dan `SetoranSampah` tanpa menduplikasi rumus.
+>>>>>>> origin/545092
