@@ -1,12 +1,6 @@
 # TRASHURY
 Aplikasi kasir dan manajemen database lokal berbasis desktop untuk memodernisasi operasional bank sampah kalurahan tanpa ketergantungan internet penuh.
 
-<<<<<<< Updated upstream
-Kelompok Keren
-Ketua Kelompok: Muhammad Afiq Mirza Choiruzan-24/537942/TK/59646
-Anggota 1: Wangsit Nursyahada-24/545092/TK/60594
-Anggota 2: Bintang Daneswara
-=======
 Kelompok Keren  
 Ketua Kelompok: Muhammad Afiq Mirza Choiruzan-24/537942/TK/59646  
 Anggota 1: Wangsit Nursyahada-24/545092/TK/60594  
@@ -68,4 +62,3 @@ menghitung nilai dan emisi, `LayananLaporan` hanya mengurus pelaporan.
 **Sufficiency, completeness, primitiveness.** Operasi dipecah ke satuan
 terkecil, misalnya `KategoriSampah.HitungNilai()` dipanggil kembali oleh
 `DetailSetoran` dan `SetoranSampah` tanpa menduplikasi rumus.
->>>>>>> Stashed changes
