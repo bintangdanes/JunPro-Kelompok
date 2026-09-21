@@ -2,3 +2,8 @@
 bin/
 obj/
 .DS_Store
+.vs/
+.idea/
+*.db
+*.db-shm
+*.db-wal
