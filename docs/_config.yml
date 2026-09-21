@@ -1,2 +1,4 @@
 title: TRASHURY
-description: Aplikasi manajemen bank sampah lokal berbasis desktop dengan fitur transaksi, dashboard dampak iklim, dan klasifikasi sampah AI offline
+description: Aplikasi desktop offline-first untuk manajemen bank sampah kalurahan — transaksi, dashboard dampak iklim (CO2e), dan klasifikasi sampah AI. Praktikum Junior Project TI, DTETI UGM. Tema Climate Action.
+theme: jekyll-theme-cayman
+show_downloads: false
