@@ -60,6 +60,142 @@ Setiap kilogram sampah yang berhasil didaur ulang melalui bank sampah berarti em
 
 ---
 
+## Modul 2 — Perancangan Perangkat Lunak dengan Pendekatan Objek (UML)
+
+### 2.1 Use Case Diagram
+
+**Aktor:**
+
+| Aktor | Peran dalam sistem |
+|---|---|
+| **Operator Bank Sampah** | Aktor utama. Melayani nasabah di meja setoran: mencatat setoran, memproses penarikan, mencetak buku tabungan. |
+| **Pengurus Bank Sampah** | *Generalization* dari Operator. Selain semua kewenangan operator, dapat mengelola master data dan menghasilkan laporan bulanan. |
+| **Nasabah (Warga)** | Aktor tidak langsung. Menyetor sampah dan menarik saldo, dilayani lewat Operator. |
+| **DLH** | Aktor eksternal sekunder. Penerima berkas laporan bulanan hasil ekspor. |
+
+```mermaid
+flowchart LR
+    Nasabah(["Nasabah<br/>(Warga)"])
+    Operator(["Operator<br/>Bank Sampah"])
+    Pengurus(["Pengurus<br/>Bank Sampah"])
+    DLH(["DLH"])
+
+    subgraph SISTEM["Sistem TRASHURY"]
+        UC1(["Kelola Data Nasabah"])
+        UC2(["Kelola Kategori Sampah"])
+        UC3(["Catat Setoran Sampah"])
+        UC4(["Klasifikasi Sampah<br/>dari Foto"])
+        UC5(["Hitung Nilai dan CO2e"])
+        UC6(["Proses Penarikan Saldo"])
+        UC7(["Cetak Buku Tabungan"])
+        UC8(["Lihat Dashboard<br/>Dampak Iklim"])
+        UC9(["Buat Laporan Bulanan"])
+        UC10(["Ekspor Laporan CSV/PDF"])
+    end
+
+    Nasabah --- UC3
+    Nasabah --- UC6
+    Operator --- UC3
+    Operator --- UC6
+    Operator --- UC7
+    Pengurus --- UC1
+    Pengurus --- UC2
+    Pengurus --- UC8
+    Pengurus --- UC9
+    UC10 --- DLH
+
+    Pengurus -.->|generalization| Operator
+    UC3 -.->|include| UC5
+    UC6 -.->|include| UC5
+    UC4 -.->|extend| UC3
+    UC9 -.->|include| UC10
+```
+
+**Penjelasan relasi:**
+
+- **Generalization** — `Pengurus` adalah spesialisasi dari `Operator`; seluruh use case operator otomatis dapat diakses pengurus.
+- **Include** — `Catat Setoran Sampah` selalu memanggil `Hitung Nilai & CO2e`; tanpa langkah ini setoran tidak punya nominal. `Buat Laporan Bulanan` selalu menyertakan `Ekspor Laporan`.
+- **Extend** — `Klasifikasi Sampah dari Foto` bersifat opsional: setoran tetap bisa dicatat manual bila operator sudah tahu kategorinya.
+- **Association** — garis lurus antara aktor dan use case yang langsung dipicu aktor tersebut.
+
+### 2.2 Activity Diagram
+
+#### (a) Catat Setoran Sampah
+
+```mermaid
+flowchart TD
+    A([Mulai]) --> B[Operator memilih nasabah]
+    B --> C{Nasabah<br/>ditemukan?}
+    C -->|Tidak| D[Tampilkan pesan<br/>nasabah tidak ditemukan]
+    D --> B
+    C -->|Ya| E[Timbang sampah<br/>per kategori]
+    E --> F{Gunakan<br/>klasifikasi foto?}
+    F -->|Ya| G[Ambil foto sampah]
+    G --> H[Model ONNX mengembalikan<br/>kategori + confidence]
+    H --> I[Operator konfirmasi kategori]
+    F -->|Tidak| I
+    I --> J[Tambah baris DetailSetoran]
+    J --> K{Ada kategori<br/>lain?}
+    K -->|Ya| E
+    K -->|Tidak| L[Hitung subtotal<br/>dan total nominal]
+    L --> M[Hitung estimasi CO2e]
+    M --> N[Kredit saldo nasabah]
+    N --> O[Simpan transaksi]
+    O --> P[Cetak bukti setoran]
+    P --> Q([Selesai])
+```
+
+#### (b) Proses Penarikan Saldo
+
+```mermaid
+flowchart TD
+    A([Mulai]) --> B[Operator memilih nasabah]
+    B --> C[Tampilkan saldo terkini]
+    C --> D[Masukkan jumlah penarikan]
+    D --> E{"Jumlah lebih dari 0?"}
+    E -->|Tidak| F[Tampilkan pesan<br/>jumlah tidak valid]
+    F --> D
+    E -->|Ya| G{Saldo<br/>mencukupi?}
+    G -->|Tidak| H[Tampilkan pesan<br/>saldo tidak mencukupi]
+    H --> D
+    G -->|Ya| I[Debit saldo nasabah]
+    I --> J[Simpan transaksi penarikan]
+    J --> K[Cetak riwayat buku tabungan]
+    K --> L([Selesai])
+```
+
+### 2.3 Class Diagram — Domain Model
+
+Sesuai instruksi Modul 2, diagram berikut adalah **domain model**: hanya entitas dan relasinya, tanpa detail atribut maupun method implementasi. Versi lengkap dengan atribut dan operasi ada di Modul 3.
+
+```mermaid
+classDiagram
+    direction LR
+    class Nasabah
+    class Transaksi
+    class SetoranSampah
+    class PenarikanSaldo
+    class DetailSetoran
+    class KategoriSampah
+    class HasilKlasifikasi
+
+    Transaksi <|-- SetoranSampah : generalization
+    Transaksi <|-- PenarikanSaldo : generalization
+    Nasabah "1" -- "0..*" Transaksi : melakukan
+    SetoranSampah "1" *-- "1..*" DetailSetoran : composition
+    DetailSetoran "0..*" --> "1" KategoriSampah : association
+    HasilKlasifikasi ..> KategoriSampah : dependency
+```
+
+**Penjelasan relasi:**
+
+- **Generalization** — `SetoranSampah` dan `PenarikanSaldo` adalah spesialisasi dari `Transaksi`.
+- **Composition** — `DetailSetoran` tidak punya makna di luar induknya; bila satu `SetoranSampah` dihapus, seluruh barisnya ikut hilang.
+- **Association + multiplicity** — satu `Nasabah` dapat memiliki nol sampai banyak `Transaksi`; satu setoran memuat minimal satu `DetailSetoran`.
+- **Dependency** — `HasilKlasifikasi` hanya mengacu pada nama kategori untuk dipetakan ke `KategoriSampah`, tanpa menyimpan objeknya.
+
+---
+
 ## Modul 3 — Desain Class
 
 ### Class Diagram
