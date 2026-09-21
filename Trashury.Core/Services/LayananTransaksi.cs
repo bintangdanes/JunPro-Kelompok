@@ -1,4 +1,3 @@
-using System.Linq;
 using Trashury.Interfaces;
 using Trashury.Models;
 using Trashury.Repositories;
@@ -27,15 +26,25 @@ public class LayananTransaksi
 
     public SetoranSampah CatatSetoran(int nasabahId, List<DetailSetoran> detail)
     {
+        ArgumentNullException.ThrowIfNull(detail);
+
+        if (detail.Count == 0)
+        {
+            throw new ArgumentException("Setoran harus memuat minimal satu rincian.", nameof(detail));
+        }
+
         var nasabah = _nasabahRepository.GetById(nasabahId);
         var setoran = new SetoranSampah(detail)
         {
-            Id = NomorTransaksiBerikutnya(),
             Tanggal = DateTime.Now
         };
 
+        // Terapkan() menambah saldo nasabah sekaligus mengisi NasabahId.
         setoran.Terapkan(nasabah);
         _transaksiRepository.Tambah(setoran);
+
+        // Satu SaveChanges menyimpan transaksi baru dan saldo nasabah yang
+        // berubah dalam satu operasi, sehingga keduanya tidak bisa terpisah.
         _transaksiRepository.SimpanPerubahan();
         return setoran;
     }
@@ -45,7 +54,6 @@ public class LayananTransaksi
         var nasabah = _nasabahRepository.GetById(nasabahId);
         var penarikan = new PenarikanSaldo(jumlah)
         {
-            Id = NomorTransaksiBerikutnya(),
             Tanggal = DateTime.Now
         };
 
@@ -53,10 +61,5 @@ public class LayananTransaksi
         _transaksiRepository.Tambah(penarikan);
         _transaksiRepository.SimpanPerubahan();
         return penarikan;
-    }
-
-    private int NomorTransaksiBerikutnya()
-    {
-        return _transaksiRepository.GetAll().Select(transaksi => transaksi.Id).DefaultIfEmpty(0).Max() + 1;
     }
 }

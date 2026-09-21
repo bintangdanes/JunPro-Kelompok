@@ -1,4 +1,5 @@
-using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Trashury.Data;
 using Trashury.Interfaces;
 using Trashury.Models;
 
@@ -6,32 +7,51 @@ namespace Trashury.Repositories;
 
 public class NasabahRepository : IRepository<Nasabah>
 {
-    private readonly List<Nasabah> _nasabah = new();
+    private readonly TrashuryDbContext _db;
+
+    public NasabahRepository(TrashuryDbContext db)
+    {
+        _db = db ?? throw new ArgumentNullException(nameof(db));
+    }
 
     public Nasabah GetById(int id)
     {
-        return _nasabah.FirstOrDefault(nasabah => nasabah.Id == id)
+        return _db.Nasabah.Find(id)
             ?? throw new KeyNotFoundException($"Nasabah dengan Id {id} tidak ditemukan.");
     }
 
-    public IEnumerable<Nasabah> GetAll() => _nasabah;
+    public IEnumerable<Nasabah> GetAll()
+    {
+        return _db.Nasabah.OrderBy(nasabah => nasabah.Nama).ToList();
+    }
 
     public void Tambah(Nasabah entitas)
     {
         ArgumentNullException.ThrowIfNull(entitas);
-        _nasabah.Add(entitas);
+        _db.Nasabah.Add(entitas);
     }
 
-    public int SimpanPerubahan()
-    {
-        // TODO: Ganti penyimpanan in-memory dengan database.
-        return 0;
-    }
+    public int SimpanPerubahan() => _db.SaveChanges();
 
     public Nasabah CariByKode(string kode)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(kode);
-        return _nasabah.FirstOrDefault(nasabah => nasabah.Id.ToString() == kode)
-            ?? throw new KeyNotFoundException($"Nasabah dengan kode {kode} tidak ditemukan.");
+
+        if (!int.TryParse(kode, out var id))
+        {
+            throw new KeyNotFoundException($"Nasabah dengan kode {kode} tidak ditemukan.");
+        }
+
+        return GetById(id);
+    }
+
+    public IEnumerable<Nasabah> CariByNama(string potonganNama)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(potonganNama);
+
+        return _db.Nasabah
+            .Where(nasabah => EF.Functions.Like(nasabah.Nama, $"%{potonganNama}%"))
+            .OrderBy(nasabah => nasabah.Nama)
+            .ToList();
     }
 }

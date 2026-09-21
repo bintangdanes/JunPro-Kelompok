@@ -6,12 +6,24 @@ public class Nasabah
 
     public int Id { get; set; }
     public string Nama { get; set; }
+
+    /// <summary>
+    /// Saldo hanya dapat dibaca dari luar. Perubahan wajib lewat
+    /// <see cref="Kredit"/> atau <see cref="Debit"/> agar validasi tidak terlewat.
+    /// </summary>
     public decimal Saldo => _saldo;
 
     public Nasabah(int id, string nama)
     {
         Id = id;
         Nama = nama ?? throw new ArgumentNullException(nameof(nama));
+    }
+
+    /// <summary>
+    /// Nasabah baru; Id akan diisi otomatis oleh basis data saat disimpan.
+    /// </summary>
+    public Nasabah(string nama) : this(0, nama)
+    {
     }
 
     public void Kredit(decimal jumlah)
