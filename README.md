@@ -244,46 +244,173 @@ classDiagram
 
 ---
 
-## Persistensi Data
+## Modul 5 — Pembuatan Basis Data
 
-Data disimpan dalam satu berkas **SQLite** lokal memakai **Entity Framework Core 8**, sehingga aplikasi tetap berjalan penuh tanpa internet sesuai sifat *offline-first*.
+### Pilihan DBMS
 
-### Lokasi Berkas
+TRASHURY memakai **SQLite 3**, diakses lewat **Entity Framework Core 8**.
+
+Pilihan ini mengikuti sifat produk yang *offline-first*. Bank sampah tingkat RW–kalurahan sering tidak punya koneksi internet yang stabil dan tidak punya petugas TI untuk merawat server basis data. SQLite menyimpan seluruh data dalam satu berkas di komputer operator, tanpa proses server yang harus dijalankan, tanpa instalasi terpisah, dan tanpa konfigurasi jaringan. Pencadangan cukup dengan menyalin satu berkas.
+
+MySQL atau SQL Server tidak dipilih karena keduanya menuntut server yang harus dipasang dan dijaga tetap hidup — beban yang tidak realistis untuk pengurus bank sampah, dan bertentangan dengan tujuan aplikasi ini berjalan tanpa ketergantungan internet.
+
+### Lokasi Berkas Basis Data
 
 Basis data diletakkan di folder data aplikasi milik pengguna, bukan di folder instalasi, agar tidak ikut terhapus saat aplikasi diperbarui:
 
 | Sistem | Lokasi |
 |---|---|
 | Windows | `%APPDATA%\Trashury\trashury.db` |
-| macOS / Linux | `~/.config/Trashury/trashury.db` |
+| macOS | `~/Library/Application Support/Trashury/trashury.db` |
+| Linux | `~/.config/Trashury/trashury.db` |
 
-### Skema
+### Entity Relationship Diagram
 
-| Tabel | Isi |
-|---|---|
-| `Nasabah` | Id, Nama, Saldo |
-| `KategoriSampah` | Id, Nama *(unik)*, HargaPerKg, FaktorEmisiCO2e |
-| `Transaksi` | Id, NasabahId, Tanggal, Nominal, JenisTransaksi, JumlahTarik |
-| `DetailSetoran` | Id, SetoranSampahId, KategoriId, BeratKg |
+```mermaid
+erDiagram
+    NASABAH ||--o{ TRANSAKSI : melakukan
+    TRANSAKSI ||--o{ DETAIL_SETORAN : memuat
+    KATEGORI_SAMPAH ||--o{ DETAIL_SETORAN : mengklasifikasi
 
-Beberapa keputusan pemetaan yang perlu dicatat:
+    NASABAH {
+        int Id PK
+        string Nama
+        decimal Saldo
+    }
+    KATEGORI_SAMPAH {
+        int Id PK
+        string Nama UK
+        decimal HargaPerKg
+        decimal FaktorEmisiCO2e
+    }
+    TRANSAKSI {
+        int Id PK
+        int NasabahId FK
+        datetime Tanggal
+        decimal Nominal
+        string JenisTransaksi
+        decimal JumlahTarik "null untuk setoran"
+    }
+    DETAIL_SETORAN {
+        int Id PK
+        int SetoranSampahId FK
+        int KategoriId FK
+        decimal BeratKg
+    }
+```
 
-- **Enkapsulasi tetap utuh.** `Nasabah.Saldo` tidak punya setter publik. EF Core dipetakan langsung ke field `_saldo` lewat `PropertyAccessMode.Field`, sehingga basis data tetap bisa menulis nilainya tanpa membuka jalan pintas yang melewati validasi `Kredit()`/`Debit()`.
-- **Table-per-hierarchy.** `SetoranSampah` dan `PenarikanSaldo` berbagi satu tabel `Transaksi`, dibedakan kolom diskriminator `JenisTransaksi`. Inheritance pada desain class terpetakan langsung ke skema.
-- **`Transaksi.NasabahId`.** Sebelumnya transaksi tidak menyimpan pemiliknya sama sekali, sehingga riwayat per nasabah mustahil dicetak. Kolom ini menutup celah tersebut dan mewujudkan relasi `Nasabah 1 — 0..* Transaksi` pada domain model Modul 2.
-- **Id dari basis data.** Nomor transaksi kini dihasilkan SQLite (`AUTOINCREMENT`), menggantikan perhitungan `max + 1` yang bisa bertabrakan.
-- **Kategori bawaan.** Lima kategori awal (Plastik PET, Kertas & Kardus, Kaleng Aluminium, Kaca, Organik) di-*seed* lewat migrasi agar aplikasi langsung dapat dipakai. Harga dan faktor emisinya masih nilai awal yang perlu disesuaikan dengan harga pengepul setempat dan rujukan resmi DLH.
+### Struktur Tabel
 
-### Migrasi
+Skema lengkap beserta indeks dan data awal tersedia di **[`docs/skema-basis-data.sql`](docs/skema-basis-data.sql)**.
+
+#### `Nasabah`
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `Id` | INTEGER | Primary key, `AUTOINCREMENT` |
+| `Nama` | TEXT | Wajib, maks. 120 karakter |
+| `Saldo` | TEXT | Saldo tabungan; hanya berubah lewat transaksi |
+
+#### `KategoriSampah`
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `Id` | INTEGER | Primary key, `AUTOINCREMENT` |
+| `Nama` | TEXT | Wajib, maks. 80 karakter, **unik** |
+| `HargaPerKg` | TEXT | Harga beli per kilogram |
+| `FaktorEmisiCO2e` | TEXT | Kg CO2e yang dihindari per kg sampah |
+
+#### `Transaksi`
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `Id` | INTEGER | Primary key, `AUTOINCREMENT` |
+| `NasabahId` | INTEGER | Foreign key ke `Nasabah`, `ON DELETE RESTRICT` |
+| `Tanggal` | TEXT | Waktu transaksi |
+| `Nominal` | TEXT | Nilai rupiah transaksi |
+| `JenisTransaksi` | TEXT | Diskriminator: `Setoran` atau `Penarikan` |
+| `JumlahTarik` | TEXT | Hanya terisi pada penarikan, `NULL` untuk setoran |
+
+#### `DetailSetoran`
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `Id` | INTEGER | Primary key, `AUTOINCREMENT` |
+| `SetoranSampahId` | INTEGER | Foreign key ke `Transaksi`, `ON DELETE CASCADE` |
+| `KategoriId` | INTEGER | Foreign key ke `KategoriSampah`, `ON DELETE RESTRICT` |
+| `BeratKg` | TEXT | Berat sampah pada baris ini |
+
+> **Catatan tipe kolom.** `decimal` dipetakan EF Core ke `TEXT` pada SQLite. Ini disengaja: SQLite tidak punya tipe desimal presisi tetap, dan menyimpannya sebagai `REAL` berisiko menimbulkan galat pembulatan pada nilai uang. Penyimpanan sebagai teks menjaga nilai rupiah tetap persis.
+
+### Keputusan Perancangan
+
+- **Table-per-hierarchy.** `SetoranSampah` dan `PenarikanSaldo` berbagi satu tabel `Transaksi`, dibedakan kolom diskriminator `JenisTransaksi`. Inheritance pada desain class Modul 3 terpetakan langsung ke skema tanpa tabel tambahan.
+- **Enkapsulasi tetap utuh.** Kolom `Saldo` dipetakan ke field privat `_saldo`, bukan ke property publik. Basis data tetap dapat menulis nilainya, tetapi kode aplikasi tetap wajib lewat `Kredit()`/`Debit()` yang memvalidasi jumlah dan mencegah saldo minus.
+- **`ON DELETE RESTRICT` pada `Nasabah` dan `KategoriSampah`.** Nasabah yang masih punya riwayat transaksi dan kategori yang pernah dipakai tidak bisa dihapus. Ini menjaga laporan historis ke DLH tetap utuh.
+- **`ON DELETE CASCADE` pada `DetailSetoran`.** Baris rincian tidak bermakna tanpa setoran induknya, sesuai relasi *composition* pada domain model Modul 2.
+- **Indeks.** `Transaksi.NasabahId` untuk cetak buku tabungan, `Transaksi.Tanggal` untuk laporan bulanan, dan indeks unik pada `KategoriSampah.Nama` agar kategori tidak terduplikasi.
+
+### Membuat dan Memeriksa Basis Data
+
+Skema dibuat lewat migrasi EF Core, bukan SQL manual, sehingga perubahan skema terlacak di Git bersama kodenya.
+
+```bash
+# Membuat basis data beserta seluruh tabel
+dotnet run --project Trashury.DbTool -- migrate
+
+# Mengisi data contoh untuk keperluan demo
+dotnet run --project Trashury.DbTool -- seed --fresh
+
+# Menampilkan isi seluruh tabel
+dotnet run --project Trashury.DbTool -- info
+```
+
+### Bukti Basis Data dan Tabel
+
+Daftar tabel yang terbentuk:
+
+```
+$ sqlite3 trashury.db ".tables"
+DetailSetoran    KategoriSampah    Nasabah    Transaksi    __EFMigrationsHistory
+```
+
+Isi basis data setelah data contoh dimasukkan:
+
+```
+$ dotnet run --project Trashury.DbTool -- info
+
+Berkas basis data : ~/Library/Application Support/Trashury/trashury.db
+Ukuran            : 53.248 byte
+Migrasi diterapkan: 20260921090656_InitialCreate
+
+Jumlah baris per tabel
+  KategoriSampah : 5
+  Nasabah        : 3
+  Transaksi      : 4
+  DetailSetoran  : 5
+
+Nasabah
+  [1] Budi Santoso     saldo Rp14.000
+  [2] Siti Aminah      saldo Rp18.000
+  [3] Joko Prasetyo    saldo Rp20.000
+
+Transaksi
+  [1] 2026-09-21 nasabah 1 Setoran   Rp   24.000  (Plastik PET 3,5 kg, Kertas & Kardus 5 kg)
+  [2] 2026-09-21 nasabah 2 Setoran   Rp   18.000  (Kaleng Aluminium 1,2 kg)
+  [3] 2026-09-21 nasabah 3 Setoran   Rp   20.000  (Kertas & Kardus 8 kg, Plastik PET 1 kg)
+  [4] 2026-09-21 nasabah 1 Penarikan Rp   10.000
+```
+
+Angka di atas dapat ditelusuri: Budi menyetor 3,5 kg PET (Rp14.000) dan 5 kg kardus (Rp10.000) sehingga saldonya Rp24.000, lalu menarik Rp10.000 dan menyisakan Rp14.000. Tabel `__EFMigrationsHistory` adalah tabel bawaan EF Core yang mencatat migrasi mana saja yang sudah diterapkan.
+
+### Mengubah Skema di Kemudian Hari
 
 ```bash
 dotnet tool install --global dotnet-ef --version 8.0.11
-
-# Membuat migrasi baru setelah mengubah Model
 dotnet ef migrations add NamaPerubahan --project Trashury.Core --output-dir Data/Migrations
 ```
 
-Skema diterapkan otomatis lewat `Database.Migrate()` saat aplikasi dijalankan, jadi tidak perlu langkah manual di sisi pengguna.
+Migrasi diterapkan otomatis lewat `Database.Migrate()` saat aplikasi dijalankan, jadi pengguna tidak perlu melakukan langkah manual apa pun.
 
 ---
 
@@ -299,7 +426,8 @@ Per commit terakhir, berikut kondisi nyata kode di repo ini:
 | `NasabahRepository`, `TransaksiRepository`, `KategoriSampahRepository` | ✅ Selesai | Menulis ke SQLite; `SimpanPerubahan()` memanggil `SaveChanges()` |
 | `KalkulatorCO2e` | ✅ Selesai | Menjumlahkan CO2e seluruh baris setoran |
 | `LayananTransaksi` | ✅ Selesai | `CatatSetoran()` dan `ProsesPenarikan()` tersimpan permanen |
-| `Trashury.Tests` | ✅ Selesai | 13 test lulus, termasuk uji persistensi lintas sesi |
+| `Trashury.Tests` | ✅ Selesai | 15 test lulus, termasuk uji persistensi lintas sesi |
+| `Trashury.DbTool` | ✅ Selesai | Perkakas migrate / seed / info untuk demo dan pemeriksaan |
 | `LayananLaporan.LaporanBulanan()` | ⚠️ Sementara | Berjalan, tetapi masih mengembalikan `IEnumerable<object>` — perlu tipe DTO khusus |
 | `LayananLaporan.EksporCsv()` | ❌ Belum | Masih `NotImplementedException` |
 | `KlasifikasiOnnx` | ❌ Belum | Masih `NotImplementedException`; sementara pakai `KlasifikasiDummy` |
@@ -334,16 +462,21 @@ dotnet build
 
 # 3. Jalankan pengujian (berjalan di Windows, macOS, maupun Linux)
 dotnet test
+
+# 4. Siapkan basis data beserta data contoh untuk demo
+dotnet run --project Trashury.DbTool -- seed --fresh
+dotnet run --project Trashury.DbTool -- info
 ```
 
-> **Status saat ini.** `Trashury.Core` dan `Trashury.Tests` berjalan penuh di semua sistem operasi — `dotnet test` meluluskan 13 pengujian termasuk uji persistensi SQLite. Project `Trashury` (WPF) belum memiliki `App.xaml`, sehingga masih ter-*build* sebagai *class library* dan `dotnet run` belum tersedia. Perintah tersebut akan aktif setelah entry point WPF ditambahkan.
+> **Status saat ini.** `Trashury.Core` dan `Trashury.Tests` berjalan penuh di semua sistem operasi — `dotnet test` meluluskan 15 pengujian termasuk uji persistensi SQLite. Project `Trashury` (WPF) belum memiliki `App.xaml`, sehingga masih ter-*build* sebagai *class library* dan `dotnet run` belum tersedia. Perintah tersebut akan aktif setelah entry point WPF ditambahkan.
 
 ### Informasi Akses Demo
 
 - **Repository:** https://github.com/bintangdanes/JunPro-Kelompok
 - **Halaman dokumentasi (GitHub Pages):** https://bintangdanes.github.io/JunPro-Kelompok/
 - **Akun demo:** aplikasi berjalan sepenuhnya lokal (*offline-first*) dan belum menggunakan autentikasi, sehingga tidak ada kredensial yang perlu dibagikan.
-- **Data awal:** lima kategori sampah ter-*seed* otomatis saat basis data pertama kali dibuat. Data nasabah dan transaksi diisi lewat aplikasi.
+- **Data awal:** lima kategori sampah ter-*seed* otomatis saat basis data pertama kali dibuat.
+- **Data contoh demo:** jalankan `dotnet run --project Trashury.DbTool -- seed --fresh` untuk mengisi 3 nasabah dan 4 transaksi, lalu `-- info` untuk menampilkan isinya.
 
 ---
 
@@ -361,7 +494,8 @@ JunPro-Kelompok/
 │   ├── Views/                  # (belum diisi)
 │   └── ViewModels/             # (belum diisi)
 ├── Trashury.Tests/             # net8.0 — pengujian xUnit
-├── docs/                       # Sumber GitHub Pages + class diagram
+├── Trashury.DbTool/            # net8.0 — perkakas basis data (migrate/seed/info)
+├── docs/                       # GitHub Pages, class diagram, skema basis data
 ├── Trashury.sln
 └── README.md
 ```
