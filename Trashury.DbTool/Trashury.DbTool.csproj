@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Trashury.DbTool</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- Agar dapat dijalankan di mesin yang hanya memiliki runtime .NET
+         versi lebih baru (mis. laptop pengembang dengan .NET 10 saja). -->
+    <RollForward>LatestMajor</RollForward>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Trashury.Core\Trashury.Core.csproj" />
+  </ItemGroup>
+</Project>
