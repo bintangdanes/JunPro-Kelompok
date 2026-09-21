@@ -2,8 +2,14 @@ namespace Trashury.Models;
 
 public class KategoriSampah
 {
+    public int Id { get; set; }
     public string Nama { get; set; }
     public decimal HargaPerKg { get; set; }
+
+    /// <summary>
+    /// Estimasi kilogram CO2e yang dihindari per kilogram sampah yang
+    /// berhasil didaur ulang, bukan emisi yang dihasilkan.
+    /// </summary>
     public decimal FaktorEmisiCO2e { get; set; }
 
     public KategoriSampah(string nama, decimal hargaPerKg, decimal faktorEmisiCO2e)

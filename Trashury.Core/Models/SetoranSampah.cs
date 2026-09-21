@@ -22,5 +22,6 @@ public class SetoranSampah : Transaksi
         ArgumentNullException.ThrowIfNull(n);
         Nominal = DetailSetoran.Sum(detail => detail.Subtotal);
         n.Kredit(Nominal);
+        NasabahId = n.Id;
     }
 }

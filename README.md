@@ -214,8 +214,10 @@ classDiagram
 | `KategoriSampah` | Harga per kg dan faktor emisi CO2e |
 | `HasilKlasifikasi` | Keluaran model klasifikasi foto |
 | `IRepository<T>` | Kontrak akses data |
+| `TrashuryDbContext` | Sesi basis data SQLite dan pemetaan seluruh entitas |
 | `NasabahRepository` | Implementasi repository nasabah |
 | `TransaksiRepository` | Implementasi repository transaksi |
+| `KategoriSampahRepository` | Implementasi repository kategori sampah |
 | `LayananTransaksi` | Alur catat setoran dan proses penarikan |
 | `LayananLaporan` | Rekap laporan bulanan dan ekspor CSV |
 | `IKalkulatorDampak` / `KalkulatorCO2e` | Perhitungan emisi yang dihindari |
@@ -234,11 +236,54 @@ classDiagram
 
 ### Analisis Kualitas Class
 
-**Coupling.** `LayananTransaksi` menerima repository dan kalkulator lewat constructor, bukan membuatnya sendiri, sehingga ikatan antar modul tetap longgar.
+**Coupling.** `LayananTransaksi` menerima repository dan kalkulator lewat constructor, bukan membuatnya sendiri, sehingga ikatan antar modul tetap longgar. Karena bergantung pada `IRepository<T>` dan bukan pada kelas konkretnya, penggantian penyimpanan in-memory menjadi SQLite tidak mengubah satu baris pun di dalam class layanan.
 
 **Cohesion.** Tiap class mengurus satu urusan: `KategoriSampah` hanya menghitung nilai dan emisi, `LayananLaporan` hanya mengurus pelaporan.
 
 **Sufficiency, completeness, primitiveness.** Operasi dipecah ke satuan terkecil, misalnya `KategoriSampah.HitungNilai()` dipanggil kembali oleh `DetailSetoran` dan `SetoranSampah` tanpa menduplikasi rumus.
+
+---
+
+## Persistensi Data
+
+Data disimpan dalam satu berkas **SQLite** lokal memakai **Entity Framework Core 8**, sehingga aplikasi tetap berjalan penuh tanpa internet sesuai sifat *offline-first*.
+
+### Lokasi Berkas
+
+Basis data diletakkan di folder data aplikasi milik pengguna, bukan di folder instalasi, agar tidak ikut terhapus saat aplikasi diperbarui:
+
+| Sistem | Lokasi |
+|---|---|
+| Windows | `%APPDATA%\Trashury\trashury.db` |
+| macOS / Linux | `~/.config/Trashury/trashury.db` |
+
+### Skema
+
+| Tabel | Isi |
+|---|---|
+| `Nasabah` | Id, Nama, Saldo |
+| `KategoriSampah` | Id, Nama *(unik)*, HargaPerKg, FaktorEmisiCO2e |
+| `Transaksi` | Id, NasabahId, Tanggal, Nominal, JenisTransaksi, JumlahTarik |
+| `DetailSetoran` | Id, SetoranSampahId, KategoriId, BeratKg |
+
+Beberapa keputusan pemetaan yang perlu dicatat:
+
+- **Enkapsulasi tetap utuh.** `Nasabah.Saldo` tidak punya setter publik. EF Core dipetakan langsung ke field `_saldo` lewat `PropertyAccessMode.Field`, sehingga basis data tetap bisa menulis nilainya tanpa membuka jalan pintas yang melewati validasi `Kredit()`/`Debit()`.
+- **Table-per-hierarchy.** `SetoranSampah` dan `PenarikanSaldo` berbagi satu tabel `Transaksi`, dibedakan kolom diskriminator `JenisTransaksi`. Inheritance pada desain class terpetakan langsung ke skema.
+- **`Transaksi.NasabahId`.** Sebelumnya transaksi tidak menyimpan pemiliknya sama sekali, sehingga riwayat per nasabah mustahil dicetak. Kolom ini menutup celah tersebut dan mewujudkan relasi `Nasabah 1 — 0..* Transaksi` pada domain model Modul 2.
+- **Id dari basis data.** Nomor transaksi kini dihasilkan SQLite (`AUTOINCREMENT`), menggantikan perhitungan `max + 1` yang bisa bertabrakan.
+- **Kategori bawaan.** Lima kategori awal (Plastik PET, Kertas & Kardus, Kaleng Aluminium, Kaca, Organik) di-*seed* lewat migrasi agar aplikasi langsung dapat dipakai. Harga dan faktor emisinya masih nilai awal yang perlu disesuaikan dengan harga pengepul setempat dan rujukan resmi DLH.
+
+### Migrasi
+
+```bash
+dotnet tool install --global dotnet-ef --version 8.0.11
+
+# Membuat migrasi baru setelah mengubah Model
+dotnet ef migrations add NamaPerubahan --project Trashury.Core --output-dir Data/Migrations
+```
+
+Skema diterapkan otomatis lewat `Database.Migrate()` saat aplikasi dijalankan, jadi tidak perlu langkah manual di sisi pengguna.
 
 ---
 
@@ -250,9 +295,11 @@ Per commit terakhir, berikut kondisi nyata kode di repo ini:
 |---|---|---|
 | `Models/` (7 class) | ✅ Selesai | Enkapsulasi saldo, inheritance, polymorphism sudah berjalan |
 | `Interfaces/` (3 interface) | ✅ Selesai | Kontrak repository, kalkulator dampak, klasifikasi |
+| `TrashuryDbContext` + migrasi | ✅ Selesai | SQLite, 4 tabel, seed kategori bawaan |
+| `NasabahRepository`, `TransaksiRepository`, `KategoriSampahRepository` | ✅ Selesai | Menulis ke SQLite; `SimpanPerubahan()` memanggil `SaveChanges()` |
 | `KalkulatorCO2e` | ✅ Selesai | Menjumlahkan CO2e seluruh baris setoran |
-| `LayananTransaksi` | ✅ Selesai | `CatatSetoran()` dan `ProsesPenarikan()` berfungsi |
-| `NasabahRepository`, `TransaksiRepository` | ⚠️ Sementara | Masih penyimpanan **in-memory**; `SimpanPerubahan()` belum menulis ke database |
+| `LayananTransaksi` | ✅ Selesai | `CatatSetoran()` dan `ProsesPenarikan()` tersimpan permanen |
+| `Trashury.Tests` | ✅ Selesai | 13 test lulus, termasuk uji persistensi lintas sesi |
 | `LayananLaporan.LaporanBulanan()` | ⚠️ Sementara | Berjalan, tetapi masih mengembalikan `IEnumerable<object>` — perlu tipe DTO khusus |
 | `LayananLaporan.EksporCsv()` | ❌ Belum | Masih `NotImplementedException` |
 | `KlasifikasiOnnx` | ❌ Belum | Masih `NotImplementedException`; sementara pakai `KlasifikasiDummy` |
@@ -260,10 +307,9 @@ Per commit terakhir, berikut kondisi nyata kode di repo ini:
 
 ### Rencana Berikutnya
 
-1. Ganti repository in-memory dengan penyimpanan lokal (SQLite via Entity Framework Core) agar aplikasi benar-benar *offline-first* dan datanya persisten.
-2. Buat DTO laporan dan implementasikan `EksporCsv()` serta ekspor PDF.
-3. Integrasikan runtime ONNX untuk `KlasifikasiOnnx`.
-4. Bangun lapisan `Views/` + `ViewModels/` (WPF MVVM) beserta entry point `App.xaml`, termasuk Dashboard Dampak Iklim.
+1. Buat DTO laporan menggantikan `IEnumerable<object>`, lalu implementasikan `EksporCsv()` serta ekspor PDF.
+2. Integrasikan runtime ONNX untuk `KlasifikasiOnnx`.
+3. Bangun lapisan `Views/` + `ViewModels/` (WPF MVVM) beserta entry point `App.xaml`, termasuk Dashboard Dampak Iklim.
 
 ---
 
@@ -272,7 +318,7 @@ Per commit terakhir, berikut kondisi nyata kode di repo ini:
 ### Prasyarat
 
 - **.NET SDK 8.0** atau lebih baru.
-- **Windows** — proyek menargetkan `net8.0-windows` dengan `UseWPF`, sehingga antarmuka hanya dapat dijalankan di Windows.
+- **Windows** — hanya diperlukan untuk menjalankan antarmuka WPF. Pengembangan dan pengujian `Trashury.Core` dapat dilakukan di macOS maupun Linux.
 - Visual Studio 2022 atau Visual Studio Code dengan ekstensi C# Dev Kit.
 
 ### Langkah
@@ -282,18 +328,22 @@ Per commit terakhir, berikut kondisi nyata kode di repo ini:
 git clone https://github.com/bintangdanes/JunPro-Kelompok.git
 cd JunPro-Kelompok
 
-# 2. Pulihkan dependensi dan build
+# 2. Pulihkan dependensi dan build seluruh solusi
 dotnet restore
 dotnet build
+
+# 3. Jalankan pengujian (berjalan di Windows, macOS, maupun Linux)
+dotnet test
 ```
 
-> **Status saat ini.** Karena `Views/` dan `ViewModels/` belum berisi entry point WPF, `Trashury.csproj` masih ter-*build* sebagai *class library* — `dotnet run` belum tersedia. Logika bisnis (`Models`, `Services`, `Repositories`) sudah dapat dipakai dan diuji secara terpisah. Perintah `dotnet run` akan aktif setelah `App.xaml` dan `MainWindow.xaml` ditambahkan pada tahap berikutnya.
+> **Status saat ini.** `Trashury.Core` dan `Trashury.Tests` berjalan penuh di semua sistem operasi — `dotnet test` meluluskan 13 pengujian termasuk uji persistensi SQLite. Project `Trashury` (WPF) belum memiliki `App.xaml`, sehingga masih ter-*build* sebagai *class library* dan `dotnet run` belum tersedia. Perintah tersebut akan aktif setelah entry point WPF ditambahkan.
 
 ### Informasi Akses Demo
 
 - **Repository:** https://github.com/bintangdanes/JunPro-Kelompok
 - **Halaman dokumentasi (GitHub Pages):** https://bintangdanes.github.io/JunPro-Kelompok/
-- **Akun demo:** aplikasi berjalan sepenuhnya lokal (*offline-first*) dan belum menggunakan autentikasi, sehingga tidak ada kredensial yang perlu dibagikan. Data contoh dimuat dari repository in-memory saat aplikasi dijalankan.
+- **Akun demo:** aplikasi berjalan sepenuhnya lokal (*offline-first*) dan belum menggunakan autentikasi, sehingga tidak ada kredensial yang perlu dibagikan.
+- **Data awal:** lima kategori sampah ter-*seed* otomatis saat basis data pertama kali dibuat. Data nasabah dan transaksi diisi lewat aplikasi.
 
 ---
 
@@ -301,16 +351,22 @@ dotnet build
 
 ```
 JunPro-Kelompok/
-├── Models/            # Entitas domain (Nasabah, Transaksi, KategoriSampah, ...)
-├── Interfaces/        # Kontrak: IRepository<T>, IKalkulatorDampak, IKlasifikasiSampah
-├── Repositories/      # Implementasi akses data
-├── Services/          # Logika bisnis: transaksi, laporan, CO2e, klasifikasi
-├── ViewModels/        # (WPF MVVM — belum diisi)
-├── Views/             # (WPF MVVM — belum diisi)
-├── docs/              # Sumber GitHub Pages + class diagram
-├── Trashury.csproj
+├── Trashury.Core/              # net8.0 — logika bisnis, lintas platform
+│   ├── Models/                 # Entitas domain (Nasabah, Transaksi, ...)
+│   ├── Interfaces/             # IRepository<T>, IKalkulatorDampak, IKlasifikasiSampah
+│   ├── Data/                   # TrashuryDbContext, factory, dan migrasi EF Core
+│   ├── Repositories/           # Implementasi akses data di atas SQLite
+│   └── Services/               # Transaksi, laporan, CO2e, klasifikasi
+├── Trashury/                   # net8.0-windows — aplikasi WPF
+│   ├── Views/                  # (belum diisi)
+│   └── ViewModels/             # (belum diisi)
+├── Trashury.Tests/             # net8.0 — pengujian xUnit
+├── docs/                       # Sumber GitHub Pages + class diagram
+├── Trashury.sln
 └── README.md
 ```
+
+Pemisahan ini membuat seluruh logika bisnis bebas dari ketergantungan WPF, sehingga dapat dikembangkan dan diuji di sistem operasi mana pun sementara antarmuka tetap khusus Windows.
 
 ## Alur Kerja Git
 

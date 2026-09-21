@@ -4,6 +4,11 @@ public class PenarikanSaldo : Transaksi
 {
     public decimal JumlahTarik { get; set; }
 
+    // Dipakai Entity Framework saat memuat data dari basis data.
+    private PenarikanSaldo()
+    {
+    }
+
     public PenarikanSaldo(decimal jumlahTarik)
     {
         JumlahTarik = jumlahTarik;
@@ -15,5 +20,6 @@ public class PenarikanSaldo : Transaksi
         ArgumentNullException.ThrowIfNull(n);
         n.Debit(JumlahTarik);
         Nominal = JumlahTarik;
+        NasabahId = n.Id;
     }
 }
