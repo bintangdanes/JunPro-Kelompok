@@ -1,13 +1,202 @@
 # TRASHURY
 
-Aplikasi kasir dan manajemen database lokal berbasis desktop untuk memodernisasi operasional bank sampah kalurahan tanpa ketergantungan internet penuh.
+**Ubah sampah jadi harta, kelola bank sampah lebih rapi.**
 
-Kelompok Keren  
-Ketua Kelompok: Muhammad Afiq Mirza Choiruzan-24/537942/TK/59646  
-Anggota 1: Wangsit Nursyahada-24/545092/TK/60594  
-Anggota 2: Bintang Daneswara-24/541599/TK/60084
+Aplikasi kasir dan manajemen data lokal berbasis desktop untuk memodernisasi operasional bank sampah tingkat RW–kalurahan tanpa ketergantungan internet penuh, sekaligus menghitung otomatis dampak iklim dari sampah yang berhasil dialihkan dari TPA.
 
-## Modul 3 - Desain Class
+| | |
+|---|---|
+| **Tema** | Climate Action |
+| **Mata Kuliah** | Praktikum Junior Project TI |
+| **Instansi** | Departemen Teknik Elektro dan Teknologi Informasi, Fakultas Teknik, Universitas Gadjah Mada |
+| **Platform** | Aplikasi desktop Windows — C# / .NET 8 / WPF (MVVM) |
+| **Kelompok** | Kelompok Keren |
+
+## Anggota Kelompok
+
+| Nama | NIM | Peran |
+|---|---|---|
+| Muhammad Afiq Mirza Choiruzan | 24/537942/TK/59646 | Ketua Kelompok — AI Engineer (model klasifikasi sampah ONNX) |
+| Wangsit Nursyahada | 24/545092/TK/60594 | Backend Developer (`Models/`, `Interfaces/`, `Repositories/`, `Services/`) |
+| Bintang Daneswara | 24/541599/TK/60084 | Frontend Developer (`Views/`, `ViewModels/`) |
+
+> **Catatan.** Instruksi praktikum menyebut tiga peran baku: *software architect*, *backend developer*, dan *frontend developer*. Pemetaan di atas menyesuaikan kebutuhan produk, karena TRASHURY memuat komponen AI. Konfirmasikan ke asisten praktikum bila penamaan peran harus persis mengikuti instruksi.
+
+---
+
+## Modul 1 — Ide Aplikasi
+
+**Nama Produk:** TRASHURY (*Trash* + *Treasury*)
+
+**Jenis Produk:** Aplikasi desktop Windows (WPF + MVVM), *offline-first*, untuk pengelola/operator bank sampah lokal — bukan untuk konsumen akhir.
+
+### Latar Belakang & Permasalahan
+
+Mayoritas pengurus bank sampah tingkat RW–kalurahan masih mencatat transaksi warga secara manual di buku tulis atau spreadsheet Excel, sehingga rentan hilang dan salah hitung. Selain itu belum ada sistem otomatis untuk menghitung dampak lingkungan (estimasi CO2e yang dihindari) yang dibutuhkan saat pelaporan ke Dinas Lingkungan Hidup (DLH). Koneksi internet di lokasi juga sering tidak stabil, sehingga solusi berbasis web penuh tidak realistis.
+
+### Ide / Solusi
+
+Aplikasi manajemen bank sampah lokal berbasis desktop dengan enam fitur utama:
+
+1. **Master Data** — pengelolaan data nasabah dan kategori sampah (harga per kg + faktor emisi).
+2. **Transaksi Setoran** — pencatatan setoran multi-kategori dengan perhitungan nilai otomatis.
+3. **Penarikan Saldo** — penarikan tabungan nasabah dan cetak riwayat buku tabungan.
+4. **Dashboard Dampak Iklim** — estimasi CO2e yang dihindari dari sampah terkumpul.
+5. **Laporan Bulanan** — rekap periodik dan ekspor CSV/PDF untuk pelaporan DLH.
+6. **Klasifikasi Sampah berbasis AI** — inferensi model ONNX secara *offline* dari foto sampah.
+
+### Relevansi dengan Tema Climate Action
+
+Setiap kilogram sampah yang berhasil didaur ulang melalui bank sampah berarti emisi gas rumah kaca yang tidak jadi dilepaskan dari TPA. TRASHURY mengubah angka itu dari perkiraan kasar menjadi data terukur per transaksi, sehingga kontribusi iklim bank sampah tingkat kalurahan menjadi dapat dilaporkan dan diverifikasi.
+
+### Analisis Kompetitor
+
+| Solusi | Model | Keterbatasan |
+|---|---|---|
+| Smash.id, Rapel | Aplikasi mobile berbasis internet | Berorientasi konsumen/penjemputan, butuh koneksi, tidak mengelola pembukuan internal bank sampah |
+| Buku tulis / Excel | Manual | Rentan hilang & salah hitung, tidak ada perhitungan dampak iklim |
+
+**Diferensiasi TRASHURY:** *offline-first*, menyasar operator bank sampah (bukan konsumen), dan satu-satunya yang menghitung estimasi CO2e secara otomatis per transaksi.
+
+---
+
+## Modul 2 — Perancangan Perangkat Lunak dengan Pendekatan Objek (UML)
+
+### 2.1 Use Case Diagram
+
+**Aktor:**
+
+| Aktor | Peran dalam sistem |
+|---|---|
+| **Operator Bank Sampah** | Aktor utama. Melayani nasabah di meja setoran: mencatat setoran, memproses penarikan, mencetak buku tabungan. |
+| **Pengurus Bank Sampah** | *Generalization* dari Operator. Selain semua kewenangan operator, dapat mengelola master data dan menghasilkan laporan bulanan. |
+| **Nasabah (Warga)** | Aktor tidak langsung. Menyetor sampah dan menarik saldo, dilayani lewat Operator. |
+| **DLH** | Aktor eksternal sekunder. Penerima berkas laporan bulanan hasil ekspor. |
+
+```mermaid
+flowchart LR
+    Nasabah(["Nasabah<br/>(Warga)"])
+    Operator(["Operator<br/>Bank Sampah"])
+    Pengurus(["Pengurus<br/>Bank Sampah"])
+    DLH(["DLH"])
+
+    subgraph SISTEM["Sistem TRASHURY"]
+        UC1(["Kelola Data Nasabah"])
+        UC2(["Kelola Kategori Sampah"])
+        UC3(["Catat Setoran Sampah"])
+        UC4(["Klasifikasi Sampah<br/>dari Foto"])
+        UC5(["Hitung Nilai dan CO2e"])
+        UC6(["Proses Penarikan Saldo"])
+        UC7(["Cetak Buku Tabungan"])
+        UC8(["Lihat Dashboard<br/>Dampak Iklim"])
+        UC9(["Buat Laporan Bulanan"])
+        UC10(["Ekspor Laporan CSV/PDF"])
+    end
+
+    Nasabah --- UC3
+    Nasabah --- UC6
+    Operator --- UC3
+    Operator --- UC6
+    Operator --- UC7
+    Pengurus --- UC1
+    Pengurus --- UC2
+    Pengurus --- UC8
+    Pengurus --- UC9
+    UC10 --- DLH
+
+    Pengurus -.->|generalization| Operator
+    UC3 -.->|include| UC5
+    UC6 -.->|include| UC5
+    UC4 -.->|extend| UC3
+    UC9 -.->|include| UC10
+```
+
+**Penjelasan relasi:**
+
+- **Generalization** — `Pengurus` adalah spesialisasi dari `Operator`; seluruh use case operator otomatis dapat diakses pengurus.
+- **Include** — `Catat Setoran Sampah` selalu memanggil `Hitung Nilai & CO2e`; tanpa langkah ini setoran tidak punya nominal. `Buat Laporan Bulanan` selalu menyertakan `Ekspor Laporan`.
+- **Extend** — `Klasifikasi Sampah dari Foto` bersifat opsional: setoran tetap bisa dicatat manual bila operator sudah tahu kategorinya.
+- **Association** — garis lurus antara aktor dan use case yang langsung dipicu aktor tersebut.
+
+### 2.2 Activity Diagram
+
+#### (a) Catat Setoran Sampah
+
+```mermaid
+flowchart TD
+    A([Mulai]) --> B[Operator memilih nasabah]
+    B --> C{Nasabah<br/>ditemukan?}
+    C -->|Tidak| D[Tampilkan pesan<br/>nasabah tidak ditemukan]
+    D --> B
+    C -->|Ya| E[Timbang sampah<br/>per kategori]
+    E --> F{Gunakan<br/>klasifikasi foto?}
+    F -->|Ya| G[Ambil foto sampah]
+    G --> H[Model ONNX mengembalikan<br/>kategori + confidence]
+    H --> I[Operator konfirmasi kategori]
+    F -->|Tidak| I
+    I --> J[Tambah baris DetailSetoran]
+    J --> K{Ada kategori<br/>lain?}
+    K -->|Ya| E
+    K -->|Tidak| L[Hitung subtotal<br/>dan total nominal]
+    L --> M[Hitung estimasi CO2e]
+    M --> N[Kredit saldo nasabah]
+    N --> O[Simpan transaksi]
+    O --> P[Cetak bukti setoran]
+    P --> Q([Selesai])
+```
+
+#### (b) Proses Penarikan Saldo
+
+```mermaid
+flowchart TD
+    A([Mulai]) --> B[Operator memilih nasabah]
+    B --> C[Tampilkan saldo terkini]
+    C --> D[Masukkan jumlah penarikan]
+    D --> E{"Jumlah lebih dari 0?"}
+    E -->|Tidak| F[Tampilkan pesan<br/>jumlah tidak valid]
+    F --> D
+    E -->|Ya| G{Saldo<br/>mencukupi?}
+    G -->|Tidak| H[Tampilkan pesan<br/>saldo tidak mencukupi]
+    H --> D
+    G -->|Ya| I[Debit saldo nasabah]
+    I --> J[Simpan transaksi penarikan]
+    J --> K[Cetak riwayat buku tabungan]
+    K --> L([Selesai])
+```
+
+### 2.3 Class Diagram — Domain Model
+
+Sesuai instruksi Modul 2, diagram berikut adalah **domain model**: hanya entitas dan relasinya, tanpa detail atribut maupun method implementasi. Versi lengkap dengan atribut dan operasi ada di Modul 3.
+
+```mermaid
+classDiagram
+    direction LR
+    class Nasabah
+    class Transaksi
+    class SetoranSampah
+    class PenarikanSaldo
+    class DetailSetoran
+    class KategoriSampah
+    class HasilKlasifikasi
+
+    Transaksi <|-- SetoranSampah : generalization
+    Transaksi <|-- PenarikanSaldo : generalization
+    Nasabah "1" -- "0..*" Transaksi : melakukan
+    SetoranSampah "1" *-- "1..*" DetailSetoran : composition
+    DetailSetoran "0..*" --> "1" KategoriSampah : association
+    HasilKlasifikasi ..> KategoriSampah : dependency
+```
+
+**Penjelasan relasi:**
+
+- **Generalization** — `SetoranSampah` dan `PenarikanSaldo` adalah spesialisasi dari `Transaksi`.
+- **Composition** — `DetailSetoran` tidak punya makna di luar induknya; bila satu `SetoranSampah` dihapus, seluruh barisnya ikut hilang.
+- **Association + multiplicity** — satu `Nasabah` dapat memiliki nol sampai banyak `Transaksi`; satu setoran memuat minimal satu `DetailSetoran`.
+- **Dependency** — `HasilKlasifikasi` hanya mengacu pada nama kategori untuk dipetakan ke `KategoriSampah`, tanpa menyimpan objeknya.
+
+---
+
+## Modul 3 — Desain Class
 
 ### Class Diagram
 
@@ -19,8 +208,8 @@ Anggota 2: Bintang Daneswara-24/541599/TK/60084
 |---|---|
 | `Nasabah` | Data nasabah dan saldo tabungan |
 | `Transaksi` *(abstract)* | Induk seluruh transaksi |
-| `SetoranSampah` | Subclass Transaksi, menambah saldo |
-| `PenarikanSaldo` | Subclass Transaksi, mengurangi saldo |
+| `SetoranSampah` | Subclass `Transaksi`, menambah saldo |
+| `PenarikanSaldo` | Subclass `Transaksi`, mengurangi saldo |
 | `DetailSetoran` | Baris rincian dalam satu setoran |
 | `KategoriSampah` | Harga per kg dan faktor emisi CO2e |
 | `HasilKlasifikasi` | Keluaran model klasifikasi foto |
@@ -28,10 +217,10 @@ Anggota 2: Bintang Daneswara-24/541599/TK/60084
 | `NasabahRepository` | Implementasi repository nasabah |
 | `TransaksiRepository` | Implementasi repository transaksi |
 | `LayananTransaksi` | Alur catat setoran dan proses penarikan |
-| `LayananLaporan` | Laporan bulanan dan ekspor CSV |
+| `LayananLaporan` | Rekap laporan bulanan dan ekspor CSV |
 | `IKalkulatorDampak` / `KalkulatorCO2e` | Perhitungan emisi yang dihindari |
 | `IKlasifikasiSampah` | Kontrak klasifikasi sampah dari foto |
-| `KlasifikasiOnnx` / `KlasifikasiDummy` | Implementasi model dan versi dummy |
+| `KlasifikasiOnnx` / `KlasifikasiDummy` | Implementasi model ONNX dan versi dummy untuk pengujian |
 
 ### Penerapan Konsep PBO
 
@@ -39,7 +228,7 @@ Anggota 2: Bintang Daneswara-24/541599/TK/60084
 
 **Inheritance.** `SetoranSampah` dan `PenarikanSaldo` mewarisi class abstract `Transaksi`, sehingga atribut `Id`, `Tanggal`, dan `Nominal` cukup ditulis satu kali.
 
-**Polymorphism.** Method `Terapkan(Nasabah)` di-override tiap subclass dengan perilaku berbeda. Kode pemanggil cukup menangani tipe `Transaksi` tanpa mengecek jenisnya satu per satu.
+**Polymorphism.** Method `Terapkan(Nasabah)` di-`override` tiap subclass dengan perilaku berbeda — `SetoranSampah` memanggil `Kredit()`, `PenarikanSaldo` memanggil `Debit()`. Kode pemanggil cukup menangani tipe `Transaksi` tanpa mengecek jenisnya satu per satu.
 
 **Interface.** `IRepository<T>`, `IKalkulatorDampak`, dan `IKlasifikasiSampah` memisahkan kontrak dari implementasi, sehingga penyimpanan data maupun model klasifikasi bisa ditukar tanpa mengubah class layanan.
 
@@ -50,3 +239,86 @@ Anggota 2: Bintang Daneswara-24/541599/TK/60084
 **Cohesion.** Tiap class mengurus satu urusan: `KategoriSampah` hanya menghitung nilai dan emisi, `LayananLaporan` hanya mengurus pelaporan.
 
 **Sufficiency, completeness, primitiveness.** Operasi dipecah ke satuan terkecil, misalnya `KategoriSampah.HitungNilai()` dipanggil kembali oleh `DetailSetoran` dan `SetoranSampah` tanpa menduplikasi rumus.
+
+---
+
+## Status Implementasi
+
+Per commit terakhir, berikut kondisi nyata kode di repo ini:
+
+| Komponen | Status | Keterangan |
+|---|---|---|
+| `Models/` (7 class) | ✅ Selesai | Enkapsulasi saldo, inheritance, polymorphism sudah berjalan |
+| `Interfaces/` (3 interface) | ✅ Selesai | Kontrak repository, kalkulator dampak, klasifikasi |
+| `KalkulatorCO2e` | ✅ Selesai | Menjumlahkan CO2e seluruh baris setoran |
+| `LayananTransaksi` | ✅ Selesai | `CatatSetoran()` dan `ProsesPenarikan()` berfungsi |
+| `NasabahRepository`, `TransaksiRepository` | ⚠️ Sementara | Masih penyimpanan **in-memory**; `SimpanPerubahan()` belum menulis ke database |
+| `LayananLaporan.LaporanBulanan()` | ⚠️ Sementara | Berjalan, tetapi masih mengembalikan `IEnumerable<object>` — perlu tipe DTO khusus |
+| `LayananLaporan.EksporCsv()` | ❌ Belum | Masih `NotImplementedException` |
+| `KlasifikasiOnnx` | ❌ Belum | Masih `NotImplementedException`; sementara pakai `KlasifikasiDummy` |
+| `Views/`, `ViewModels/` | ❌ Belum | Folder masih kosong, belum ada `App.xaml`/`MainWindow.xaml` |
+
+### Rencana Berikutnya
+
+1. Ganti repository in-memory dengan penyimpanan lokal (SQLite via Entity Framework Core) agar aplikasi benar-benar *offline-first* dan datanya persisten.
+2. Buat DTO laporan dan implementasikan `EksporCsv()` serta ekspor PDF.
+3. Integrasikan runtime ONNX untuk `KlasifikasiOnnx`.
+4. Bangun lapisan `Views/` + `ViewModels/` (WPF MVVM) beserta entry point `App.xaml`, termasuk Dashboard Dampak Iklim.
+
+---
+
+## Menjalankan Proyek
+
+### Prasyarat
+
+- **.NET SDK 8.0** atau lebih baru.
+- **Windows** — proyek menargetkan `net8.0-windows` dengan `UseWPF`, sehingga antarmuka hanya dapat dijalankan di Windows.
+- Visual Studio 2022 atau Visual Studio Code dengan ekstensi C# Dev Kit.
+
+### Langkah
+
+```bash
+# 1. Clone repository
+git clone https://github.com/bintangdanes/JunPro-Kelompok.git
+cd JunPro-Kelompok
+
+# 2. Pulihkan dependensi dan build
+dotnet restore
+dotnet build
+```
+
+> **Status saat ini.** Karena `Views/` dan `ViewModels/` belum berisi entry point WPF, `Trashury.csproj` masih ter-*build* sebagai *class library* — `dotnet run` belum tersedia. Logika bisnis (`Models`, `Services`, `Repositories`) sudah dapat dipakai dan diuji secara terpisah. Perintah `dotnet run` akan aktif setelah `App.xaml` dan `MainWindow.xaml` ditambahkan pada tahap berikutnya.
+
+### Informasi Akses Demo
+
+- **Repository:** https://github.com/bintangdanes/JunPro-Kelompok
+- **Halaman dokumentasi (GitHub Pages):** https://bintangdanes.github.io/JunPro-Kelompok/
+- **Akun demo:** aplikasi berjalan sepenuhnya lokal (*offline-first*) dan belum menggunakan autentikasi, sehingga tidak ada kredensial yang perlu dibagikan. Data contoh dimuat dari repository in-memory saat aplikasi dijalankan.
+
+---
+
+## Struktur Repository
+
+```
+JunPro-Kelompok/
+├── Models/            # Entitas domain (Nasabah, Transaksi, KategoriSampah, ...)
+├── Interfaces/        # Kontrak: IRepository<T>, IKalkulatorDampak, IKlasifikasiSampah
+├── Repositories/      # Implementasi akses data
+├── Services/          # Logika bisnis: transaksi, laporan, CO2e, klasifikasi
+├── ViewModels/        # (WPF MVVM — belum diisi)
+├── Views/             # (WPF MVVM — belum diisi)
+├── docs/              # Sumber GitHub Pages + class diagram
+├── Trashury.csproj
+└── README.md
+```
+
+## Alur Kerja Git
+
+Tiap anggota bekerja di branch bernomor NIM masing-masing, lalu digabungkan ke `main` lewat Pull Request.
+
+| Branch | Pemilik |
+|---|---|
+| `main` | Branch integrasi — hasil merge seluruh anggota |
+| `537942` | Muhammad Afiq Mirza Choiruzan |
+| `545092` | Wangsit Nursyahada |
+| `541599` | Bintang Daneswara |
