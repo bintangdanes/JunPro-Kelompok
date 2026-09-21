@@ -26,6 +26,16 @@ public class TrashuryDbContextFactory : IDesignTimeDbContextFactory<TrashuryDbCo
     public static TrashuryDbContext Buat(string? pathBasisData = null)
     {
         var path = pathBasisData ?? LokasiBasisDataBawaan();
+
+        // SQLite membuat berkas basis data secara otomatis, tetapi tidak
+        // membuat foldernya. Tanpa langkah ini, path khusus yang foldernya
+        // belum ada akan gagal dibuka.
+        var folder = Path.GetDirectoryName(Path.GetFullPath(path));
+        if (!string.IsNullOrEmpty(folder))
+        {
+            Directory.CreateDirectory(folder);
+        }
+
         var options = new DbContextOptionsBuilder<TrashuryDbContext>()
             .UseSqlite($"Data Source={path}")
             .Options;
