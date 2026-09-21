@@ -242,6 +242,61 @@ classDiagram
 
 ---
 
+## Status Implementasi
+
+Per commit terakhir, berikut kondisi nyata kode di repo ini:
+
+| Komponen | Status | Keterangan |
+|---|---|---|
+| `Models/` (7 class) | ✅ Selesai | Enkapsulasi saldo, inheritance, polymorphism sudah berjalan |
+| `Interfaces/` (3 interface) | ✅ Selesai | Kontrak repository, kalkulator dampak, klasifikasi |
+| `KalkulatorCO2e` | ✅ Selesai | Menjumlahkan CO2e seluruh baris setoran |
+| `LayananTransaksi` | ✅ Selesai | `CatatSetoran()` dan `ProsesPenarikan()` berfungsi |
+| `NasabahRepository`, `TransaksiRepository` | ⚠️ Sementara | Masih penyimpanan **in-memory**; `SimpanPerubahan()` belum menulis ke database |
+| `LayananLaporan.LaporanBulanan()` | ⚠️ Sementara | Berjalan, tetapi masih mengembalikan `IEnumerable<object>` — perlu tipe DTO khusus |
+| `LayananLaporan.EksporCsv()` | ❌ Belum | Masih `NotImplementedException` |
+| `KlasifikasiOnnx` | ❌ Belum | Masih `NotImplementedException`; sementara pakai `KlasifikasiDummy` |
+| `Views/`, `ViewModels/` | ❌ Belum | Folder masih kosong, belum ada `App.xaml`/`MainWindow.xaml` |
+
+### Rencana Berikutnya
+
+1. Ganti repository in-memory dengan penyimpanan lokal (SQLite via Entity Framework Core) agar aplikasi benar-benar *offline-first* dan datanya persisten.
+2. Buat DTO laporan dan implementasikan `EksporCsv()` serta ekspor PDF.
+3. Integrasikan runtime ONNX untuk `KlasifikasiOnnx`.
+4. Bangun lapisan `Views/` + `ViewModels/` (WPF MVVM) beserta entry point `App.xaml`, termasuk Dashboard Dampak Iklim.
+
+---
+
+## Menjalankan Proyek
+
+### Prasyarat
+
+- **.NET SDK 8.0** atau lebih baru.
+- **Windows** — proyek menargetkan `net8.0-windows` dengan `UseWPF`, sehingga antarmuka hanya dapat dijalankan di Windows.
+- Visual Studio 2022 atau Visual Studio Code dengan ekstensi C# Dev Kit.
+
+### Langkah
+
+```bash
+# 1. Clone repository
+git clone https://github.com/bintangdanes/JunPro-Kelompok.git
+cd JunPro-Kelompok
+
+# 2. Pulihkan dependensi dan build
+dotnet restore
+dotnet build
+```
+
+> **Status saat ini.** Karena `Views/` dan `ViewModels/` belum berisi entry point WPF, `Trashury.csproj` masih ter-*build* sebagai *class library* — `dotnet run` belum tersedia. Logika bisnis (`Models`, `Services`, `Repositories`) sudah dapat dipakai dan diuji secara terpisah. Perintah `dotnet run` akan aktif setelah `App.xaml` dan `MainWindow.xaml` ditambahkan pada tahap berikutnya.
+
+### Informasi Akses Demo
+
+- **Repository:** https://github.com/bintangdanes/JunPro-Kelompok
+- **Halaman dokumentasi (GitHub Pages):** https://bintangdanes.github.io/JunPro-Kelompok/
+- **Akun demo:** aplikasi berjalan sepenuhnya lokal (*offline-first*) dan belum menggunakan autentikasi, sehingga tidak ada kredensial yang perlu dibagikan. Data contoh dimuat dari repository in-memory saat aplikasi dijalankan.
+
+---
+
 ## Struktur Repository
 
 ```
