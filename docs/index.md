@@ -91,9 +91,29 @@ Tabel struktur class dan analisis *coupling*, *cohesion*, serta *sufficiency* se
 
 ---
 
+## Modul 5 — Pembuatan Basis Data
+
+TRASHURY memakai **SQLite 3** yang diakses lewat **Entity Framework Core 8**. Seluruh data tersimpan dalam satu berkas di komputer operator, tanpa server yang harus dipasang dan dirawat — sesuai sifat aplikasi yang *offline-first*.
+
+**Empat tabel utama:**
+
+| Tabel | Isi |
+|---|---|
+| `Nasabah` | Identitas warga penabung dan saldo tabungannya |
+| `KategoriSampah` | Jenis sampah, harga per kg, dan faktor emisi CO2e |
+| `Transaksi` | Setoran dan penarikan dalam satu tabel *(table-per-hierarchy)* |
+| `DetailSetoran` | Rincian tiap kategori dalam satu setoran |
+
+Skema dibuat lewat migrasi EF Core sehingga perubahannya terlacak di Git bersama kode, bukan lewat SQL manual. Salinan skema lengkap tersedia di [`docs/skema-basis-data.sql`](skema-basis-data.sql).
+
+ERD, struktur kolom tiap tabel, keputusan perancangan, dan bukti isi basis data selengkapnya ada di
+[README repository »](https://github.com/bintangdanes/JunPro-Kelompok#modul-5--pembuatan-basis-data)
+
+---
+
 ## Status & Akses
 
-Logika bisnis (`Models`, `Interfaces`, `Services`) sudah berjalan. Lapisan antarmuka WPF (`Views/`, `ViewModels/`), penyimpanan database, ekspor CSV/PDF, dan integrasi model ONNX masih dalam pengerjaan — rincian statusnya ada di README.
+Logika bisnis dan penyimpanan SQLite sudah berjalan penuh, diuji oleh 13 pengujian otomatis. Lapisan antarmuka WPF (`Views/`, `ViewModels/`), ekspor CSV/PDF, dan integrasi model ONNX masih dalam pengerjaan — rincian statusnya ada di README.
 
 - **Repository:** <https://github.com/bintangdanes/JunPro-Kelompok>
 - **Cara menjalankan:** [Petunjuk build & run »](https://github.com/bintangdanes/JunPro-Kelompok#menjalankan-proyek)
