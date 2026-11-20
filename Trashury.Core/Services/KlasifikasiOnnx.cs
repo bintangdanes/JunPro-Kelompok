@@ -42,7 +42,7 @@ public sealed class KlasifikasiOnnx : IKlasifikasiSampah, IDisposable
 
     public KlasifikasiOnnx()
         : this(
-            Path.Combine(AppContext.BaseDirectory, "Assets", "Models", "klasifikasi-sampah-v1.onnx"),
+            Path.Combine(AppContext.BaseDirectory, "Assets", "Models", "klasifikasi-sampah-v3.onnx"),
             Path.Combine(AppContext.BaseDirectory, "Assets", "Models", "labels.txt"))
     {
     }
