@@ -426,18 +426,19 @@ Per commit terakhir, berikut kondisi nyata kode di repo ini:
 | `NasabahRepository`, `TransaksiRepository`, `KategoriSampahRepository` | ✅ Selesai | Menulis ke SQLite; `SimpanPerubahan()` memanggil `SaveChanges()` |
 | `KalkulatorCO2e` | ✅ Selesai | Menjumlahkan CO2e seluruh baris setoran |
 | `LayananTransaksi` | ✅ Selesai | `CatatSetoran()` dan `ProsesPenarikan()` tersimpan permanen |
-| `Trashury.Tests` | ✅ Selesai | 15 test lulus, termasuk uji persistensi lintas sesi |
+| `Trashury.Tests` | ✅ Selesai | 34 test lulus, termasuk uji persistensi lintas sesi, laporan bulanan, dan buku tabungan |
 | `Trashury.DbTool` | ✅ Selesai | Perkakas migrate / seed / info untuk demo dan pemeriksaan |
-| `LayananLaporan.LaporanBulanan()` | ⚠️ Sementara | Berjalan, tetapi masih mengembalikan `IEnumerable<object>` — perlu tipe DTO khusus |
-| `LayananLaporan.EksporCsv()` | ❌ Belum | Masih `NotImplementedException` |
-| `KlasifikasiOnnx` | ❌ Belum | Masih `NotImplementedException`; sementara pakai `KlasifikasiDummy` |
+| `LayananLaporan.LaporanBulanan()` | ✅ Selesai | Mengembalikan DTO `RekapBulanan` (total setoran, penarikan, berat, CO2e) beserta rincian `RekapKategori` |
+| `LayananLaporan.EksporCsv()` | ✅ Selesai | Rincian per kategori + baris TOTAL; bawaan format Excel Indonesia (`;` dan koma desimal), opsi `FormatCsv.Standar` (RFC 4180) |
+| `LayananLaporan.EksporPdf()` | ✅ Selesai | Laporan A4 (ringkasan + rincian per kategori) via QuestPDF, lisensi Community |
+| `LayananBukuTabungan` | ✅ Selesai | Riwayat transaksi per nasabah dengan saldo berjalan, plus cetak PDF |
+| Endpoint laporan & buku tabungan (`Trashury.Api`) | ✅ Selesai | `GET /api/laporan/{tahun}/{bulan}` (+ `/csv`, `/pdf`), `GET /api/nasabah/{id}/buku-tabungan` (+ `/pdf`) |
+| `KlasifikasiOnnx` | ✅ Selesai | Inferensi model `klasifikasi-sampah-v3.onnx` (EfficientNet-B2) secara offline |
 | `Views/`, `ViewModels/` | ❌ Belum | Folder masih kosong, belum ada `App.xaml`/`MainWindow.xaml` |
 
 ### Rencana Berikutnya
 
-1. Buat DTO laporan menggantikan `IEnumerable<object>`, lalu implementasikan `EksporCsv()` serta ekspor PDF.
-2. Integrasikan runtime ONNX untuk `KlasifikasiOnnx`.
-3. Bangun lapisan `Views/` + `ViewModels/` (WPF MVVM) beserta entry point `App.xaml`, termasuk Dashboard Dampak Iklim.
+1. Bangun lapisan `Views/` + `ViewModels/` (WPF MVVM) beserta entry point `App.xaml`, termasuk Dashboard Dampak Iklim.
 
 ---
 
@@ -468,7 +469,7 @@ dotnet run --project Trashury.DbTool -- seed --fresh
 dotnet run --project Trashury.DbTool -- info
 ```
 
-> **Status saat ini.** `Trashury.Core` dan `Trashury.Tests` berjalan penuh di semua sistem operasi — `dotnet test` meluluskan 15 pengujian termasuk uji persistensi SQLite. Project `Trashury` (WPF) belum memiliki `App.xaml`, sehingga masih ter-*build* sebagai *class library* dan `dotnet run` belum tersedia. Perintah tersebut akan aktif setelah entry point WPF ditambahkan.
+> **Status saat ini.** `Trashury.Core` dan `Trashury.Tests` berjalan penuh di semua sistem operasi — `dotnet test` meluluskan 34 pengujian termasuk uji persistensi SQLite. Project `Trashury` (WPF) belum memiliki `App.xaml`, sehingga masih ter-*build* sebagai *class library* dan `dotnet run` belum tersedia. Perintah tersebut akan aktif setelah entry point WPF ditambahkan.
 
 ### Informasi Akses Demo
 
