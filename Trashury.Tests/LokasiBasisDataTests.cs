@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Trashury.Data;
 using Trashury.Repositories;
@@ -29,6 +30,7 @@ public class LokasiBasisDataTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             if (Directory.Exists(folder))
             {
                 Directory.Delete(folder, recursive: true);
