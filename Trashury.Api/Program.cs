@@ -21,6 +21,8 @@ builder.Services.AddScoped<NasabahRepository>();
 builder.Services.AddScoped<TransaksiRepository>();
 builder.Services.AddScoped<KategoriSampahRepository>();
 builder.Services.AddScoped<LayananTransaksi>();
+builder.Services.AddScoped<LayananLaporan>();
+builder.Services.AddScoped<LayananBukuTabungan>();
 builder.Services.AddSingleton<IKalkulatorDampak, KalkulatorCO2e>();
 builder.Services.AddSingleton<IKlasifikasiSampah, KlasifikasiOnnx>();
 
@@ -134,6 +136,40 @@ app.MapGet("/api/dampak", (TransaksiRepository repo, IKalkulatorDampak kalkulato
     });
 });
 
+// Laporan bulanan untuk DLH: ringkasan JSON, unduhan CSV, dan unduhan PDF.
+app.MapGet("/api/laporan/{tahun:int}/{bulan:int}", (int tahun, int bulan, LayananLaporan layanan) =>
+    BuatRekap(layanan, tahun, bulan, rekap => Results.Ok(rekap)));
+
+app.MapGet("/api/laporan/{tahun:int}/{bulan:int}/csv", (
+    int tahun, int bulan, string? format, LayananLaporan layanan) =>
+{
+    // ?format=standar untuk koma + titik desimal; bawaan untuk Excel Indonesia.
+    var formatCsv = string.Equals(format, "standar", StringComparison.OrdinalIgnoreCase)
+        ? FormatCsv.Standar
+        : FormatCsv.ExcelIndonesia;
+
+    return BuatRekap(layanan, tahun, bulan, rekap => Results.File(
+        LayananLaporan.BuatCsv(rekap, formatCsv),
+        "text/csv; charset=utf-8",
+        $"laporan-trashury-{tahun:D4}-{bulan:D2}.csv"));
+});
+
+app.MapGet("/api/laporan/{tahun:int}/{bulan:int}/pdf", (int tahun, int bulan, LayananLaporan layanan) =>
+    BuatRekap(layanan, tahun, bulan, rekap => Results.File(
+        LayananLaporan.BuatPdf(rekap),
+        "application/pdf",
+        $"laporan-trashury-{tahun:D4}-{bulan:D2}.pdf")));
+
+// Buku tabungan satu nasabah: riwayat dengan saldo berjalan, JSON dan PDF.
+app.MapGet("/api/nasabah/{id:int}/buku-tabungan", (int id, LayananBukuTabungan layanan) =>
+    SusunBuku(layanan, id, buku => Results.Ok(buku)));
+
+app.MapGet("/api/nasabah/{id:int}/buku-tabungan/pdf", (int id, LayananBukuTabungan layanan) =>
+    SusunBuku(layanan, id, buku => Results.File(
+        LayananBukuTabungan.BuatPdf(buku),
+        "application/pdf",
+        $"buku-tabungan-{id}.pdf")));
+
 app.MapPost("/api/klasifikasi", async (IFormFile? file, IKlasifikasiSampah klasifikasi) =>
 {
     if (file is null || file.Length == 0)
@@ -146,6 +182,33 @@ app.MapPost("/api/klasifikasi", async (IFormFile? file, IKlasifikasiSampah klasi
 }).DisableAntiforgery();
 
 app.Run();
+
+static IResult BuatRekap(LayananLaporan layanan, int tahun, int bulan, Func<RekapBulanan, IResult> hasil)
+{
+    if (tahun is < 2000 or > 9999)
+        return Results.BadRequest(new { pesan = "Tahun tidak valid." });
+
+    try
+    {
+        return hasil(layanan.LaporanBulanan(bulan, tahun));
+    }
+    catch (ArgumentOutOfRangeException ex)
+    {
+        return Results.BadRequest(new { pesan = ex.Message });
+    }
+}
+
+static IResult SusunBuku(LayananBukuTabungan layanan, int nasabahId, Func<BukuTabungan, IResult> hasil)
+{
+    try
+    {
+        return hasil(layanan.Susun(nasabahId));
+    }
+    catch (KeyNotFoundException ex)
+    {
+        return Results.NotFound(new { pesan = ex.Message });
+    }
+}
 
 public record BuatNasabahRequest(string Nama);
 public record DetailSetoranRequest(int KategoriId, decimal BeratKg);
