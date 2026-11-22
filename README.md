@@ -432,13 +432,9 @@ Per commit terakhir, berikut kondisi nyata kode di repo ini:
 | `LayananLaporan.EksporCsv()` | ✅ Selesai | Rincian per kategori + baris TOTAL; bawaan format Excel Indonesia (`;` dan koma desimal), opsi `FormatCsv.Standar` (RFC 4180) |
 | `LayananLaporan.EksporPdf()` | ✅ Selesai | Laporan A4 (ringkasan + rincian per kategori) via QuestPDF, lisensi Community |
 | `LayananBukuTabungan` | ✅ Selesai | Riwayat transaksi per nasabah dengan saldo berjalan, plus cetak PDF |
-| Endpoint laporan & buku tabungan (`Trashury.Api`) | ✅ Selesai | `GET /api/laporan/{tahun}/{bulan}` (+ `/csv`, `/pdf`), `GET /api/nasabah/{id}/buku-tabungan` (+ `/pdf`) |
-| `KlasifikasiOnnx` | ✅ Selesai | Inferensi model `klasifikasi-sampah-v3.onnx` (EfficientNet-B2) secara offline |
-| `Views/`, `ViewModels/` | ❌ Belum | Folder masih kosong, belum ada `App.xaml`/`MainWindow.xaml` |
-
-### Rencana Berikutnya
-
-1. Bangun lapisan `Views/` + `ViewModels/` (WPF MVVM) beserta entry point `App.xaml`, termasuk Dashboard Dampak Iklim.
+| Endpoint Web API (`Trashury.Api`) | ✅ Selesai | 13 endpoint REST (kategori, nasabah, transaksi, dampak, laporan CSV/PDF, buku tabungan PDF, klasifikasi AI) + Swagger UI |
+| `KlasifikasiOnnx` | ✅ Selesai | Inferensi `klasifikasi-sampah-v3.onnx` (EfficientNet-B2) secara offline + Top-3 kandidat & peringatan bahaya/kontaminasi |
+| `Trashury` (WPF MVVM) | ✅ Selesai | `App.xaml`, `MainWindow.xaml`, `KameraWindow.xaml`, `MainViewModel.cs` (4 tab lengkap + live webcam preview + cetak bukti setoran PDF) |
 
 ---
 
@@ -467,9 +463,13 @@ dotnet test
 # 4. Siapkan basis data beserta data contoh untuk demo
 dotnet run --project Trashury.DbTool -- seed --fresh
 dotnet run --project Trashury.DbTool -- info
+
+# 5. Jalankan aplikasi desktop WPF (Windows) atau layanan Web API
+dotnet run --project Trashury
+dotnet run --project Trashury.Api
 ```
 
-> **Status saat ini.** `Trashury.Core` dan `Trashury.Tests` berjalan penuh di semua sistem operasi — `dotnet test` meluluskan 34 pengujian termasuk uji persistensi SQLite. Project `Trashury` (WPF) belum memiliki `App.xaml`, sehingga masih ter-*build* sebagai *class library* dan `dotnet run` belum tersedia. Perintah tersebut akan aktif setelah entry point WPF ditambahkan.
+> **Status saat ini.** Seluruh proyek dalam solusi (`Trashury.Core`, `Trashury`, `Trashury.Api`, `Trashury.DbTool`, dan `Trashury.Tests`) sudah selesai dan lulus 34 pengujian otomatis.
 
 ### Informasi Akses Demo
 
@@ -491,10 +491,11 @@ JunPro-Kelompok/
 │   ├── Data/                   # TrashuryDbContext, factory, dan migrasi EF Core
 │   ├── Repositories/           # Implementasi akses data di atas SQLite
 │   └── Services/               # Transaksi, laporan, CO2e, klasifikasi
-├── Trashury/                   # net8.0-windows — aplikasi WPF
-│   ├── Views/                  # (belum diisi)
-│   └── ViewModels/             # (belum diisi)
-├── Trashury.Tests/             # net8.0 — pengujian xUnit
+├── Trashury/                   # net8.0-windows — aplikasi desktop WPF (MVVM)
+│   ├── App.xaml / MainWindow.xaml / KameraWindow.xaml
+│   └── ViewModels/             # MainViewModel, RelayCommand
+├── Trashury.Api/               # net8.0 — layanan REST Web API + Swagger UI
+├── Trashury.Tests/             # net8.0 — 34 pengujian otomatis xUnit
 ├── Trashury.DbTool/            # net8.0 — perkakas basis data (migrate/seed/info)
 ├── docs/                       # GitHub Pages, class diagram, skema basis data
 ├── Trashury.sln

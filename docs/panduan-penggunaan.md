@@ -17,7 +17,7 @@ Dokumen ini menjelaskan cara menjalankan, mengonfigurasi basis data lokal, serta
 TRASHURY menggunakan **SQLite lokal** tanpa server basis data eksternal sehingga operator tidak perlu melakukan instalasi MySQL/PostgreSQL secara manual.
 
 ### a. Lokasi & Migrasi Otomatis
-- Saat aplikasi atau `Trashury.Api` pertama kali dijalankan, `Database.Migrate()` otomatis membuat berkas basis data SQLite (`trashury.db`) di folder data aplikasi pengguna (`LocalApplicationData\Trashury\trashury.db` pada Windows) beserta **5 kategori sampah awal**:
+- Saat aplikasi atau `Trashury.Api` pertama kali dijalankan, `Database.Migrate()` otomatis membuat berkas basis data SQLite (`trashury.db`) di folder data aplikasi pengguna (`%APPDATA%\Trashury\trashury.db` pada Windows) beserta **5 kategori sampah awal**:
   1. `Plastik PET` (Rp4.000/kg — 1,5 kg CO2e/kg)
   2. `Kertas & Kardus` (Rp2.000/kg — 0,9 kg CO2e/kg)
   3. `Kaleng Aluminium` (Rp15.000/kg — 8,1 kg CO2e/kg)
@@ -48,11 +48,12 @@ dotnet run --project Trashury.DbTool -- info
 ## 3. Cara Menggunakan Aplikasi (Alur Operator)
 
 1. **Kelola Master Data (Nasabah & Kategori Sampah)**
-   - Daftarkan nasabah baru (nama) dan sesuaikan daftar kategori sampah (harga per kg dan faktor reduksi emisi CO2e) sesuai ketentuan pengepul/DLH setempat.
-2. **Catat Setoran Sampah (+ Klasifikasi AI Opsional)**
+   - Tambah, ubah, hapus, atau reset data nasabah dan kategori sampah (harga per kg dan faktor reduksi emisi CO2e), serta gunakan kotak **Cari (Nama / ID)** untuk memfilter daftar nasabah secara langsung.
+2. **Catat Setoran Sampah (+ Klasifikasi AI & Kamera Opsional)**
    - Pilih nasabah yang menyetor sampah.
-   - *(Opsional)* Unggah foto sampah untuk diklasifikasikan otomatis secara *offline* oleh model ONNX (`KlasifikasiOnnx`), lalu konfirmasi kategori yang sesuai.
-   - Masukkan berat (kg) per kategori. Sistem otomatis menghitung subtotal rupiah, total nominal setoran, estimasi CO2e yang dihindari, dan menambah saldo nasabah.
+   - *(Opsional)* Klik **Pilih Foto...** atau **Ambil Kamera** (dengan jendela pratinjau webcam langsung) untuk mengklasifikasikan foto sampah secara *offline* menggunakan model ONNX (`KlasifikasiOnnx`). Panel AI menampilkan pratinjau foto, rekomendasi utama, **Top-3 kandidat**, serta peringatan otomatis bila terdeteksi pecahan kaca (`Glass Shards`) atau sampah organik (`food waste`).
+   - Masukkan berat (kg) per kategori lalu klik **+ Tambah ke Daftar Setoran** (gunakan tombol **Hapus** pada baris tabel jika ingin membatalkan item).
+   - Klik **Simpan Transaksi Setoran** untuk menyimpan transaksi, menambah saldo nasabah, dan mencetak **Bukti Setoran (PDF)** bila diperlukan.
 3. **Proses Penarikan Saldo & Cetak Buku Tabungan**
    - Pilih nasabah dan masukkan nominal penarikan (> 0 dan tidak melebihi saldo terkini).
    - Cetak/ekspor riwayat mutasi buku tabungan nasabah ke format PDF (`LayananBukuTabungan`).
