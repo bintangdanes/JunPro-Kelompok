@@ -8,9 +8,15 @@ Dokumen ini menjelaskan cara menjalankan, mengonfigurasi basis data lokal, serta
 
 - **Sistem Operasi:** Windows 10/11 (untuk menjalankan aplikasi desktop WPF). Komponen `Trashury.Core`, `Trashury.Api`, `Trashury.DbTool`, dan `Trashury.Tests` berjalan lintas platform (Windows, macOS, Linux).
 - **Runtime:** Tidak perlu menginstal .NET secara terpisah jika menggunakan paket rilis *self-contained*. Tersedia dua opsi kemasan aplikasi:
-  1. **Opsi 1 — Berkas Tunggal `Trashury.exe` (*Single-File Executable*, `publish/SingleFile/Trashury.exe`):** Seluruh runtime .NET, library native (SQLite, ONNX Runtime, OpenCV), dan model AI sudah dibundel menjadi **1 berkas `.exe` mandiri** yang dapat langsung diunduh dan dijalankan dengan klik ganda tanpa ekstraksi `.zip`.
+  1. **Opsi 1 — Berkas Tunggal `Trashury.exe` (*Single-File Executable*, `publish/SingleFile/Trashury.exe`):** Seluruh runtime .NET, library native (SQLite, ONNX Runtime, OpenCV), dan model AI sudah dibundel menjadi **1 berkas `.exe` mandiri** (~155 MB) yang dapat langsung diunduh dan dijalankan dengan klik ganda tanpa ekstraksi `.zip`.
   2. **Opsi 2 — Paket Folder `publish.zip` (`publish/Trashury/`):** Berisi `Trashury.exe` beserta folder `Assets/Models/` dan berkas `.dll` pendukung (ekstrak seluruh isi `.zip` ke satu folder lalu jalankan `Trashury.exe`).
 - **Koneksi Internet:** Tidak diperlukan saat aplikasi dijalankan (*offline-first*); model AI ONNX (`klasifikasi-sampah-v3.onnx`) sudah tertanam di dalam paket aplikasi.
+
+### Panduan Singkat Menjalankan `Trashury.exe` (Single-File)
+1. Unduh atau salin 1 berkas **`Trashury.exe`** (~155 MB dari folder `publish/SingleFile/`) ke komputer Windows 10/11 (boleh ditaruh di `Desktop`, `Downloads`, atau folder mana saja sendirian tanpa folder tambahan).
+2. Klik ganda **`Trashury.exe`**.
+3. Jika Windows SmartScreen menampilkan *"Windows protected your PC"*, klik **More info** → **Run anyway**.
+4. Tunggu sekitar 3–5 detik pada pembukaan pertama (aplikasi secara otomatis menyiapkan runtime .NET, SQLite, dan model AI ONNX di latar belakang), lalu jendela utama **TRASHURY** langsung siap digunakan.
 
 ---
 
