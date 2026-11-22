@@ -94,23 +94,45 @@ public sealed class KlasifikasiOnnx : IKlasifikasiSampah, IDisposable
             throw new InvalidOperationException("Model ONNX tidak mengembalikan skor klasifikasi.");
 
         float[] probabilitas = KonversiKeProbabilitas(skor);
-        int indeksTerbaik = 0;
-        for (int i = 1; i < probabilitas.Length; i++)
+        int[] urutanIndeks = Enumerable.Range(0, probabilitas.Length)
+            .OrderByDescending(i => probabilitas[i])
+            .Take(3)
+            .ToArray();
+
+        int indeksTerbaik = urutanIndeks[0];
+        string labelTerbaik = AmbilLabel(indeksTerbaik);
+        string kategoriTerbaik = PetakanKategori(labelTerbaik);
+
+        var kandidatTeratas = new List<string>();
+        var peringatan = new List<string>();
+
+        for (int peringkat = 0; peringkat < urutanIndeks.Length; peringkat++)
         {
-            if (probabilitas[i] > probabilitas[indeksTerbaik])
-                indeksTerbaik = i;
+            int idx = urutanIndeks[peringkat];
+            string lbl = AmbilLabel(idx);
+            string kat = PetakanKategori(lbl);
+            float conf = probabilitas[idx];
+            kandidatTeratas.Add($"#{peringkat + 1} {kat} [{lbl}] ({conf:P1})");
+
+            if (conf >= 0.20f)
+            {
+                if (string.Equals(lbl, "Glass Shards", StringComparison.OrdinalIgnoreCase))
+                    peringatan.Add("PERINGATAN: Terdeteksi pecahan kaca (Glass Shards). Gunakan sarung tangan.");
+                else if (string.Equals(lbl, "food waste", StringComparison.OrdinalIgnoreCase))
+                    peringatan.Add("PERINGATAN: Terdeteksi sampah organik / sisa makanan (food waste).");
+            }
         }
 
-        string label = indeksTerbaik < _labels.Length
-            ? _labels[indeksTerbaik]
-            : $"Kelas-{indeksTerbaik}";
-
-        string kategori = PemetaanKategori.TryGetValue(label, out string? terpetakan)
-            ? terpetakan
-            : label;
-
-        return new HasilKlasifikasi(kategori, probabilitas[indeksTerbaik]);
+        return new HasilKlasifikasi(kategoriTerbaik, probabilitas[indeksTerbaik])
+        {
+            LabelAsli = labelTerbaik,
+            KandidatTeratas = kandidatTeratas,
+            Peringatan = peringatan.Distinct().ToList()
+        };
     }
+
+    private string AmbilLabel(int indeks) =>
+        indeks >= 0 && indeks < _labels.Length ? _labels[indeks] : $"Kelas-{indeks}";
 
     /// <summary>
     /// Mengubah label mentah model menjadi nama KategoriSampah yang terdaftar di basis data.

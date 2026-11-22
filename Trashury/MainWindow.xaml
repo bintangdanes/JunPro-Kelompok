@@ -219,17 +219,22 @@
                     <DockPanel Grid.Column="0" Margin="0,0,12,0">
                         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
                             <TextBlock Text="Kelola Data Nasabah" FontSize="16" FontWeight="Bold" Margin="0,0,0,8"/>
-                            <DockPanel>
+                            <DockPanel Margin="0,0,0,6">
                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="8,0,0,0">
                                     <Button Content="Tambah" Command="{Binding TambahNasabahCommand}" Padding="10,6" Background="#2E7D32" Foreground="White" Margin="0,0,4,0"/>
                                     <Button Content="Ubah" Command="{Binding UbahNasabahCommand}" Padding="10,6" Background="#0277BD" Foreground="White" Margin="0,0,4,0"/>
-                                    <Button Content="Hapus" Command="{Binding HapusNasabahCommand}" Padding="10,6" Background="#C62828" Foreground="White"/>
+                                    <Button Content="Hapus" Command="{Binding HapusNasabahCommand}" Padding="10,6" Background="#C62828" Foreground="White" Margin="0,0,4,0"/>
+                                    <Button Content="Reset" Command="{Binding ResetNasabahCommand}" Padding="10,6" Background="#616161" Foreground="White"/>
                                 </StackPanel>
                                 <TextBox Text="{Binding NamaNasabahBaru}" Padding="6" ToolTip="Masukkan nama lengkap nasabah"/>
                             </DockPanel>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Left" Text="Cari (Nama / ID):" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBox Text="{Binding KataKunciCariNasabah, UpdateSourceTrigger=PropertyChanged}" Padding="5" ToolTip="Ketik nama atau ID nasabah untuk memfilter tabel"/>
+                            </DockPanel>
                         </StackPanel>
 
-                        <DataGrid ItemsSource="{Binding DaftarNasabah}" SelectedItem="{Binding NasabahMasterTerpilih}" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid ItemsSource="{Binding DaftarNasabahMaster}" SelectedItem="{Binding NasabahMasterTerpilih}" AutoGenerateColumns="False" IsReadOnly="True">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="70"/>
                                 <DataGridTextColumn Header="Nama Nasabah" Binding="{Binding Nama}" Width="*"/>
@@ -255,7 +260,8 @@
                                 <StackPanel Grid.Column="3" Orientation="Horizontal">
                                     <Button Content="+" Command="{Binding TambahKategoriCommand}" Padding="9,6" Background="#2E7D32" Foreground="White" ToolTip="Tambah Kategori" Margin="0,0,3,0"/>
                                     <Button Content="Ubah" Command="{Binding UbahKategoriCommand}" Padding="8,6" Background="#0277BD" Foreground="White" Margin="0,0,3,0"/>
-                                    <Button Content="Hapus" Command="{Binding HapusKategoriCommand}" Padding="8,6" Background="#C62828" Foreground="White"/>
+                                    <Button Content="Hapus" Command="{Binding HapusKategoriCommand}" Padding="8,6" Background="#C62828" Foreground="White" Margin="0,0,3,0"/>
+                                    <Button Content="Reset" Command="{Binding ResetKategoriCommand}" Padding="8,6" Background="#616161" Foreground="White"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
