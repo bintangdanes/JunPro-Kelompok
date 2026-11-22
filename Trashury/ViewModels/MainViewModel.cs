@@ -68,6 +68,7 @@ public class MainViewModel : INotifyPropertyChanged
 
     // --- Koleksi Data ---
     public ObservableCollection<Nasabah> DaftarNasabah { get; } = new();
+    public ObservableCollection<Nasabah> DaftarNasabahMaster { get; } = new();
     public ObservableCollection<KategoriSampah> DaftarKategori { get; } = new();
     public ObservableCollection<DetailSetoran> KeranjangSetoran { get; } = new();
     public ObservableCollection<RekapKategori> RincianLaporan { get; } = new();
@@ -75,6 +76,18 @@ public class MainViewModel : INotifyPropertyChanged
     // --- Form Master Nasabah ---
     private string _namaNasabahBaru = string.Empty;
     public string NamaNasabahBaru { get => _namaNasabahBaru; set { _namaNasabahBaru = value; OnPropertyChanged(); } }
+
+    private string _kataKunciCariNasabah = string.Empty;
+    public string KataKunciCariNasabah
+    {
+        get => _kataKunciCariNasabah;
+        set
+        {
+            _kataKunciCariNasabah = value;
+            OnPropertyChanged();
+            SegarkanDaftarNasabahMaster();
+        }
+    }
 
     private Nasabah? _nasabahMasterTerpilih;
     public Nasabah? NasabahMasterTerpilih
@@ -186,9 +199,11 @@ public class MainViewModel : INotifyPropertyChanged
     public ICommand TambahNasabahCommand { get; }
     public ICommand UbahNasabahCommand { get; }
     public ICommand HapusNasabahCommand { get; }
+    public ICommand ResetNasabahCommand { get; }
     public ICommand TambahKategoriCommand { get; }
     public ICommand UbahKategoriCommand { get; }
     public ICommand HapusKategoriCommand { get; }
+    public ICommand ResetKategoriCommand { get; }
     public ICommand KlasifikasiFotoCommand { get; }
     public ICommand KlasifikasiKameraCommand { get; }
     public ICommand TambahBarisSetoranCommand { get; }
@@ -223,9 +238,11 @@ public class MainViewModel : INotifyPropertyChanged
         TambahNasabahCommand = new RelayCommand(_ => TambahNasabah());
         UbahNasabahCommand = new RelayCommand(_ => UbahNasabah());
         HapusNasabahCommand = new RelayCommand(_ => HapusNasabah());
+        ResetNasabahCommand = new RelayCommand(_ => ResetFormNasabah());
         TambahKategoriCommand = new RelayCommand(_ => TambahKategori());
         UbahKategoriCommand = new RelayCommand(_ => UbahKategori());
         HapusKategoriCommand = new RelayCommand(_ => HapusKategori());
+        ResetKategoriCommand = new RelayCommand(_ => ResetFormKategori());
         KlasifikasiFotoCommand = new RelayCommand(_ => KlasifikasiFoto());
         KlasifikasiKameraCommand = new RelayCommand(_ => KlasifikasiKamera());
         TambahBarisSetoranCommand = new RelayCommand(_ => TambahBarisSetoran());
@@ -249,6 +266,8 @@ public class MainViewModel : INotifyPropertyChanged
         foreach (var n in _nasabahRepo.GetAll())
             DaftarNasabah.Add(n);
 
+        SegarkanDaftarNasabahMaster();
+
         DaftarKategori.Clear();
         foreach (var k in _kategoriRepo.GetAll())
             DaftarKategori.Add(k);
@@ -258,6 +277,51 @@ public class MainViewModel : INotifyPropertyChanged
         KategoriSetoranTerpilih ??= DaftarKategori.FirstOrDefault();
 
         MuatLaporan();
+    }
+
+    private void SegarkanDaftarNasabahMaster()
+    {
+        DaftarNasabahMaster.Clear();
+        string kunci = KataKunciCariNasabah.Trim();
+
+        IEnumerable<Nasabah> hasil;
+        if (string.IsNullOrEmpty(kunci))
+        {
+            hasil = _nasabahRepo.GetAll();
+        }
+        else if (int.TryParse(kunci, out _))
+        {
+            try
+            {
+                hasil = new[] { _nasabahRepo.CariByKode(kunci) };
+            }
+            catch (KeyNotFoundException)
+            {
+                hasil = Enumerable.Empty<Nasabah>();
+            }
+        }
+        else
+        {
+            hasil = _nasabahRepo.CariByNama(kunci);
+        }
+
+        foreach (var n in hasil)
+            DaftarNasabahMaster.Add(n);
+    }
+
+    private void ResetFormNasabah()
+    {
+        NasabahMasterTerpilih = null;
+        NamaNasabahBaru = string.Empty;
+        KataKunciCariNasabah = string.Empty;
+    }
+
+    private void ResetFormKategori()
+    {
+        KategoriMasterTerpilih = null;
+        NamaKategoriBaru = string.Empty;
+        HargaKategoriBaru = "2000";
+        EmisiKategoriBaru = "1.0";
     }
 
     private void TambahNasabah()
@@ -461,7 +525,18 @@ public class MainViewModel : INotifyPropertyChanged
             PreviewGambarAi = bitmap;
 
             var hasil = _klasifikasiSampah.Klasifikasi(bytes);
-            HasilPrediksiAi = $"Prediksi AI: {hasil.KategoriTerdeteksi} (Confidence: {hasil.Confidence:P1})";
+            var barisInfo = new List<string>
+            {
+                $"Prediksi AI: {hasil.KategoriTerdeteksi} (Confidence: {hasil.Confidence:P1})"
+            };
+
+            if (hasil.KandidatTeratas.Count > 1)
+                barisInfo.Add("Top-3: " + string.Join(" | ", hasil.KandidatTeratas));
+
+            foreach (string p in hasil.Peringatan)
+                barisInfo.Add($"⚠️ {p}");
+
+            HasilPrediksiAi = string.Join("\n", barisInfo);
 
             var cocok = DaftarKategori.FirstOrDefault(k =>
                 k.Nama.Contains(hasil.KategoriTerdeteksi, StringComparison.OrdinalIgnoreCase) ||
