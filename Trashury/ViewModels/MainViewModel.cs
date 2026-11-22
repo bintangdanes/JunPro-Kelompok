@@ -4,7 +4,9 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Win32;
+using OpenCvSharp;
 using Trashury.Data;
 using Trashury.Interfaces;
 using Trashury.Models;
@@ -73,6 +75,19 @@ public class MainViewModel : INotifyPropertyChanged
     private string _namaNasabahBaru = string.Empty;
     public string NamaNasabahBaru { get => _namaNasabahBaru; set { _namaNasabahBaru = value; OnPropertyChanged(); } }
 
+    private Nasabah? _nasabahMasterTerpilih;
+    public Nasabah? NasabahMasterTerpilih
+    {
+        get => _nasabahMasterTerpilih;
+        set
+        {
+            _nasabahMasterTerpilih = value;
+            OnPropertyChanged();
+            if (value != null)
+                NamaNasabahBaru = value.Nama;
+        }
+    }
+
     // --- Form Master Kategori ---
     private string _namaKategoriBaru = string.Empty;
     public string NamaKategoriBaru { get => _namaKategoriBaru; set { _namaKategoriBaru = value; OnPropertyChanged(); } }
@@ -82,6 +97,23 @@ public class MainViewModel : INotifyPropertyChanged
 
     private string _emisiKategoriBaru = "1.0";
     public string EmisiKategoriBaru { get => _emisiKategoriBaru; set { _emisiKategoriBaru = value; OnPropertyChanged(); } }
+
+    private KategoriSampah? _kategoriMasterTerpilih;
+    public KategoriSampah? KategoriMasterTerpilih
+    {
+        get => _kategoriMasterTerpilih;
+        set
+        {
+            _kategoriMasterTerpilih = value;
+            OnPropertyChanged();
+            if (value != null)
+            {
+                NamaKategoriBaru = value.Nama;
+                HargaKategoriBaru = value.HargaPerKg.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                EmisiKategoriBaru = value.FaktorEmisiCO2e.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            }
+        }
+    }
 
     // --- Form Transaksi Setoran ---
     private Nasabah? _nasabahSetoranTerpilih;
@@ -148,8 +180,13 @@ public class MainViewModel : INotifyPropertyChanged
     // --- Commands ---
     public ICommand GantiPeranCommand { get; }
     public ICommand TambahNasabahCommand { get; }
+    public ICommand UbahNasabahCommand { get; }
+    public ICommand HapusNasabahCommand { get; }
     public ICommand TambahKategoriCommand { get; }
+    public ICommand UbahKategoriCommand { get; }
+    public ICommand HapusKategoriCommand { get; }
     public ICommand KlasifikasiFotoCommand { get; }
+    public ICommand KlasifikasiKameraCommand { get; }
     public ICommand TambahBarisSetoranCommand { get; }
     public ICommand HapusBarisSetoranCommand { get; }
     public ICommand SimpanSetoranCommand { get; }
@@ -180,8 +217,13 @@ public class MainViewModel : INotifyPropertyChanged
 
         GantiPeranCommand = new RelayCommand(_ => IsPengurus = !IsPengurus);
         TambahNasabahCommand = new RelayCommand(_ => TambahNasabah());
+        UbahNasabahCommand = new RelayCommand(_ => UbahNasabah());
+        HapusNasabahCommand = new RelayCommand(_ => HapusNasabah());
         TambahKategoriCommand = new RelayCommand(_ => TambahKategori());
+        UbahKategoriCommand = new RelayCommand(_ => UbahKategori());
+        HapusKategoriCommand = new RelayCommand(_ => HapusKategori());
         KlasifikasiFotoCommand = new RelayCommand(_ => KlasifikasiFoto());
+        KlasifikasiKameraCommand = new RelayCommand(_ => KlasifikasiKamera());
         TambahBarisSetoranCommand = new RelayCommand(_ => TambahBarisSetoran());
         HapusBarisSetoranCommand = new RelayCommand(obj => { if (obj is DetailSetoran d) { KeranjangSetoran.Remove(d); RefreshTotalKeranjang(); } });
         SimpanSetoranCommand = new RelayCommand(_ => SimpanSetoran());
@@ -236,6 +278,53 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    private void UbahNasabah()
+    {
+        if (NasabahMasterTerpilih == null)
+        {
+            MessageBox.Show("Pilih nasabah di tabel terlebih dahulu.", "Validasi", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(NamaNasabahBaru))
+        {
+            MessageBox.Show("Nama nasabah tidak boleh kosong.", "Validasi", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        NasabahMasterTerpilih.Nama = NamaNasabahBaru.Trim();
+        _nasabahRepo.SimpanPerubahan();
+        NasabahMasterTerpilih = null;
+        NamaNasabahBaru = string.Empty;
+        MuatSemuaData();
+        MessageBox.Show("Data nasabah berhasil diperbarui.", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    private void HapusNasabah()
+    {
+        if (NasabahMasterTerpilih == null)
+        {
+            MessageBox.Show("Pilih nasabah di tabel terlebih dahulu.", "Validasi", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        if (MessageBox.Show($"Hapus nasabah '{NasabahMasterTerpilih.Nama}'?", "Konfirmasi", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            _nasabahRepo.Hapus(NasabahMasterTerpilih);
+            _nasabahRepo.SimpanPerubahan();
+            NasabahMasterTerpilih = null;
+            NamaNasabahBaru = string.Empty;
+            MuatSemuaData();
+            MessageBox.Show("Nasabah berhasil dihapus.", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (DbUpdateException)
+        {
+            _db.ChangeTracker.Clear();
+            MessageBox.Show("Nasabah tidak dapat dihapus karena sudah memiliki riwayat transaksi.", "Ditolak", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
     private void TambahKategori()
     {
         try
@@ -260,6 +349,68 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    private void UbahKategori()
+    {
+        if (KategoriMasterTerpilih == null)
+        {
+            MessageBox.Show("Pilih kategori di tabel terlebih dahulu.", "Validasi", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        if (!TryBacaInputKategori(out string nama, out decimal harga, out decimal emisi))
+            return;
+
+        KategoriMasterTerpilih.Nama = nama;
+        KategoriMasterTerpilih.HargaPerKg = harga;
+        KategoriMasterTerpilih.FaktorEmisiCO2e = emisi;
+        _kategoriRepo.SimpanPerubahan();
+        KategoriMasterTerpilih = null;
+        NamaKategoriBaru = string.Empty;
+        MuatSemuaData();
+        MessageBox.Show("Kategori sampah berhasil diperbarui.", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    private void HapusKategori()
+    {
+        if (KategoriMasterTerpilih == null)
+        {
+            MessageBox.Show("Pilih kategori di tabel terlebih dahulu.", "Validasi", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        if (MessageBox.Show($"Hapus kategori '{KategoriMasterTerpilih.Nama}'?", "Konfirmasi", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            _kategoriRepo.Hapus(KategoriMasterTerpilih);
+            _kategoriRepo.SimpanPerubahan();
+            KategoriMasterTerpilih = null;
+            NamaKategoriBaru = string.Empty;
+            MuatSemuaData();
+            MessageBox.Show("Kategori sampah berhasil dihapus.", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (DbUpdateException)
+        {
+            _db.ChangeTracker.Clear();
+            MessageBox.Show("Kategori tidak dapat dihapus karena sudah dipakai di transaksi setoran.", "Ditolak", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private bool TryBacaInputKategori(out string nama, out decimal harga, out decimal emisi)
+    {
+        nama = NamaKategoriBaru.Trim();
+        if (string.IsNullOrWhiteSpace(nama) ||
+            !decimal.TryParse(HargaKategoriBaru.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out harga) ||
+            !decimal.TryParse(EmisiKategoriBaru.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out emisi) ||
+            harga < 0 || emisi < 0)
+        {
+            harga = 0;
+            emisi = 0;
+            MessageBox.Show("Pastikan nama, harga per kg (>= 0), dan faktor emisi CO2e (>= 0) diisi dengan benar.", "Validasi", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+        return true;
+    }
+
     private void KlasifikasiFoto()
     {
         var dialog = new OpenFileDialog
@@ -269,23 +420,55 @@ public class MainViewModel : INotifyPropertyChanged
         };
 
         if (dialog.ShowDialog() == true)
-        {
-            try
-            {
-                byte[] bytes = File.ReadAllBytes(dialog.FileName);
-                var hasil = _klasifikasiSampah.Klasifikasi(bytes);
-                HasilPrediksiAi = $"Prediksi AI: {hasil.KategoriTerdeteksi} (Confidence: {hasil.Confidence:P1})";
+            JalankanKlasifikasiGambar(File.ReadAllBytes(dialog.FileName));
+    }
 
-                var cocok = DaftarKategori.FirstOrDefault(k =>
-                    k.Nama.Contains(hasil.KategoriTerdeteksi, StringComparison.OrdinalIgnoreCase) ||
-                    hasil.KategoriTerdeteksi.Contains(k.Nama, StringComparison.OrdinalIgnoreCase));
-                if (cocok != null)
-                    KategoriSetoranTerpilih = cocok;
-            }
-            catch (Exception ex)
+    private void KlasifikasiKamera()
+    {
+        try
+        {
+            using var capture = new VideoCapture(0);
+            if (!capture.IsOpened())
             {
-                MessageBox.Show($"Gagal menjalankan klasifikasi AI: {ex.Message}", "Error AI", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Kamera/webcam tidak ditemukan atau sedang dipakai aplikasi lain.", "Kamera Tidak Tersedia", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
+
+            using var frame = new Mat();
+            // Baca beberapa frame awal agar exposure kamera stabil.
+            for (int i = 0; i < 5; i++)
+                capture.Read(frame);
+
+            if (frame.Empty() || !Cv2.ImEncode(".jpg", frame, out byte[] bytes))
+            {
+                MessageBox.Show("Gagal mengambil gambar dari kamera.", "Error Kamera", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            JalankanKlasifikasiGambar(bytes);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Gagal mengakses kamera: {ex.Message}", "Error Kamera", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void JalankanKlasifikasiGambar(byte[] bytes)
+    {
+        try
+        {
+            var hasil = _klasifikasiSampah.Klasifikasi(bytes);
+            HasilPrediksiAi = $"Prediksi AI: {hasil.KategoriTerdeteksi} (Confidence: {hasil.Confidence:P1})";
+
+            var cocok = DaftarKategori.FirstOrDefault(k =>
+                k.Nama.Contains(hasil.KategoriTerdeteksi, StringComparison.OrdinalIgnoreCase) ||
+                hasil.KategoriTerdeteksi.Contains(k.Nama, StringComparison.OrdinalIgnoreCase));
+            if (cocok != null)
+                KategoriSetoranTerpilih = cocok;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Gagal menjalankan klasifikasi AI: {ex.Message}", "Error AI", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -327,11 +510,31 @@ public class MainViewModel : INotifyPropertyChanged
                 return;
             }
 
+            string namaNasabah = NasabahSetoranTerpilih.Nama;
             var transaksi = _layananTransaksi.CatatSetoran(NasabahSetoranTerpilih.Id, KeranjangSetoran.ToList());
+            decimal co2e = new KalkulatorCO2e().HitungCO2e(transaksi);
             KeranjangSetoran.Clear();
             RefreshTotalKeranjang();
             MuatSemuaData();
-            MessageBox.Show($"Setoran berhasil dicatat!\nTotal Nominal: Rp {transaksi.Nominal:N0}", "Transaksi Berhasil", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            if (MessageBox.Show(
+                    $"Setoran berhasil dicatat!\nTotal Nominal: Rp {transaksi.Nominal:N0}\nEstimasi CO2e Dihindari: {co2e:N2} kg\n\nCetak bukti setoran (PDF)?",
+                    "Transaksi Berhasil",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information) == MessageBoxResult.Yes)
+            {
+                var dialog = new SaveFileDialog
+                {
+                    Title = "Simpan Bukti Setoran PDF",
+                    Filter = "PDF Document|*.pdf",
+                    FileName = $"BuktiSetoran_{transaksi.Id}_{namaNasabah.Replace(' ', '_')}.pdf"
+                };
+                if (dialog.ShowDialog() == true)
+                {
+                    File.WriteAllBytes(dialog.FileName, DokumenBuktiSetoranPdf.Buat(transaksi, namaNasabah, co2e));
+                    MessageBox.Show($"Bukti setoran berhasil disimpan ke:\n{dialog.FileName}", "Cetak Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
         }
         catch (Exception ex)
         {

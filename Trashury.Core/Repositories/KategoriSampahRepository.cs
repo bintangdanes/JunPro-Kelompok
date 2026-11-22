@@ -31,6 +31,12 @@ public class KategoriSampahRepository : IRepository<KategoriSampah>
         _db.KategoriSampah.Add(entitas);
     }
 
+    public void Hapus(KategoriSampah entitas)
+    {
+        ArgumentNullException.ThrowIfNull(entitas);
+        _db.KategoriSampah.Remove(entitas);
+    }
+
     public int SimpanPerubahan() => _db.SaveChanges();
 
     /// <summary>
