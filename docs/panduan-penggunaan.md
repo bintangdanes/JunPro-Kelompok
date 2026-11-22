@@ -7,8 +7,10 @@ Dokumen ini menjelaskan cara menjalankan, mengonfigurasi basis data lokal, serta
 ## 1. Prasyarat & Instalasi
 
 - **Sistem Operasi:** Windows 10/11 (untuk menjalankan aplikasi desktop WPF). Komponen `Trashury.Core`, `Trashury.Api`, `Trashury.DbTool`, dan `Trashury.Tests` berjalan lintas platform (Windows, macOS, Linux).
-- **Runtime:** .NET 8.0 SDK atau .NET 8.0 Desktop Runtime (tidak perlu jika memakai rilis *self-contained* `.exe`).
-- **Koneksi Internet:** Tidak diperlukan saat aplikasi dijalankan (*offline-first*); model AI ONNX (`klasifikasi-sampah-v3.onnx`) sudah tertanam di dalam paket aplikasi (`Assets/Models/`).
+- **Runtime:** Tidak perlu menginstal .NET secara terpisah jika menggunakan paket rilis *self-contained*. Tersedia dua opsi kemasan aplikasi:
+  1. **Opsi 1 — Berkas Tunggal `Trashury.exe` (*Single-File Executable*, `publish/SingleFile/Trashury.exe`):** Seluruh runtime .NET, library native (SQLite, ONNX Runtime, OpenCV), dan model AI sudah dibundel menjadi **1 berkas `.exe` mandiri** yang dapat langsung diunduh dan dijalankan dengan klik ganda tanpa ekstraksi `.zip`.
+  2. **Opsi 2 — Paket Folder `publish.zip` (`publish/Trashury/`):** Berisi `Trashury.exe` beserta folder `Assets/Models/` dan berkas `.dll` pendukung (ekstrak seluruh isi `.zip` ke satu folder lalu jalankan `Trashury.exe`).
+- **Koneksi Internet:** Tidak diperlukan saat aplikasi dijalankan (*offline-first*); model AI ONNX (`klasifikasi-sampah-v3.onnx`) sudah tertanam di dalam paket aplikasi.
 
 ---
 

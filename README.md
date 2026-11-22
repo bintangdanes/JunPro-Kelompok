@@ -467,6 +467,9 @@ dotnet run --project Trashury.DbTool -- info
 # 5. Jalankan aplikasi desktop WPF (Windows) atau layanan Web API
 dotnet run --project Trashury
 dotnet run --project Trashury.Api
+
+# 6. (Opsional) Kemas menjadi 1 berkas Trashury.exe tunggal (Single-File Self-Contained)
+dotnet publish Trashury/Trashury.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish/SingleFile
 ```
 
 > **Status saat ini.** Seluruh proyek dalam solusi (`Trashury.Core`, `Trashury`, `Trashury.Api`, `Trashury.DbTool`, dan `Trashury.Tests`) sudah selesai dan lulus 34 pengujian otomatis.
