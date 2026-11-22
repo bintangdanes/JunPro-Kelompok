@@ -8,3 +8,4 @@ obj/
 *.db-shm
 *.db-wal
 publish/
+publish.zip

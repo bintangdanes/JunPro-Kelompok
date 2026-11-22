@@ -20,7 +20,7 @@ Aplikasi kasir dan manajemen data lokal berbasis desktop untuk memodernisasi ope
 
 | Nama | NIM | Peran |
 |---|---|---|
-| Muhammad Afiq Mirza Choiruzan | 24/537942/TK/59646 | Ketua Kelompok — AI Engineer |
+| Muhammad Afiq Mirza Choiruzan | 24/537942/TK/59646 | Ketua Kelompok — Software Architect & AI Engineer |
 | Wangsit Nursyahada | 24/545092/TK/60594 | Backend Developer |
 | Bintang Daneswara | 24/541599/TK/60084 | Frontend Developer |
 
@@ -113,7 +113,7 @@ ERD, struktur kolom tiap tabel, keputusan perancangan, dan bukti isi basis data 
 
 ## Status & Akses
 
-Logika bisnis dan penyimpanan SQLite sudah berjalan penuh, diuji oleh 13 pengujian otomatis. Lapisan antarmuka WPF (`Views/`, `ViewModels/`), ekspor CSV/PDF, dan integrasi model ONNX masih dalam pengerjaan — rincian statusnya ada di README.
+Seluruh komponen aplikasi — antarmuka desktop WPF MVVM (`Trashury`), logika bisnis & penyimpanan SQLite (`Trashury.Core`), ekspor laporan CSV/PDF, buku tabungan PDF, bukti setoran PDF, klasifikasi AI ONNX (`klasifikasi-sampah-v3.onnx`) beserta pratinjau kamera langsung, dan layanan Web API (`Trashury.Api`) — sudah selesai dan diuji oleh **34 pengujian otomatis**.
 
 - **Repository:** <https://github.com/bintangdanes/JunPro-Kelompok>
 - **Cara menjalankan:** [Petunjuk build & run »](https://github.com/bintangdanes/JunPro-Kelompok#menjalankan-proyek)
