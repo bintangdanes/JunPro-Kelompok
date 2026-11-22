@@ -118,6 +118,7 @@
                                         <Button Grid.Column="0" Content="Pilih Foto..." Command="{Binding KlasifikasiFotoCommand}" Padding="6,5" Margin="0,0,4,0"/>
                                         <Button Grid.Column="1" Content="Ambil Kamera" Command="{Binding KlasifikasiKameraCommand}" Padding="6,5" Margin="4,0,0,0" Background="#2E7D32" Foreground="White"/>
                                     </Grid>
+                                    <Image Source="{Binding PreviewGambarAi}" MaxHeight="130" Stretch="Uniform" Margin="0,0,0,6"/>
                                     <TextBlock Text="{Binding HasilPrediksiAi}" TextWrapping="Wrap" FontSize="12" Foreground="#2E7D32"/>
                                 </StackPanel>
                             </Border>

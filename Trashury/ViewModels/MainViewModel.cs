@@ -4,9 +4,10 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Win32;
-using OpenCvSharp;
 using Trashury.Data;
 using Trashury.Interfaces;
 using Trashury.Models;
@@ -127,6 +128,9 @@ public class MainViewModel : INotifyPropertyChanged
 
     private string _hasilPrediksiAi = "Belum ada foto sampah diklasifikasi.";
     public string HasilPrediksiAi { get => _hasilPrediksiAi; set { _hasilPrediksiAi = value; OnPropertyChanged(); } }
+
+    private ImageSource? _previewGambarAi;
+    public ImageSource? PreviewGambarAi { get => _previewGambarAi; set { _previewGambarAi = value; OnPropertyChanged(); } }
 
     public decimal TotalNominalKeranjang => KeranjangSetoran.Sum(d => d.Subtotal);
     public decimal TotalEmisiKeranjang => KeranjangSetoran.Sum(d => d.Kategori.HitungCO2e(d.BeratKg));
@@ -427,25 +431,13 @@ public class MainViewModel : INotifyPropertyChanged
     {
         try
         {
-            using var capture = new VideoCapture(0);
-            if (!capture.IsOpened())
+            var kameraWindow = new KameraWindow
             {
-                MessageBox.Show("Kamera/webcam tidak ditemukan atau sedang dipakai aplikasi lain.", "Kamera Tidak Tersedia", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+                Owner = Application.Current.MainWindow
+            };
 
-            using var frame = new Mat();
-            // Baca beberapa frame awal agar exposure kamera stabil.
-            for (int i = 0; i < 5; i++)
-                capture.Read(frame);
-
-            if (frame.Empty() || !Cv2.ImEncode(".jpg", frame, out byte[] bytes))
-            {
-                MessageBox.Show("Gagal mengambil gambar dari kamera.", "Error Kamera", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            JalankanKlasifikasiGambar(bytes);
+            if (kameraWindow.ShowDialog() == true && kameraWindow.HasilGambar != null)
+                JalankanKlasifikasiGambar(kameraWindow.HasilGambar);
         }
         catch (Exception ex)
         {
@@ -457,6 +449,17 @@ public class MainViewModel : INotifyPropertyChanged
     {
         try
         {
+            var bitmap = new BitmapImage();
+            using (var ms = new MemoryStream(bytes))
+            {
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.StreamSource = ms;
+                bitmap.EndInit();
+            }
+            bitmap.Freeze();
+            PreviewGambarAi = bitmap;
+
             var hasil = _klasifikasiSampah.Klasifikasi(bytes);
             HasilPrediksiAi = $"Prediksi AI: {hasil.KategoriTerdeteksi} (Confidence: {hasil.Confidence:P1})";
 
