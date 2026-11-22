@@ -110,7 +110,14 @@
                             <Border Background="#E8F5E9" Padding="10" CornerRadius="6" Margin="0,0,0,12">
                                 <StackPanel>
                                     <TextBlock Text="Klasifikasi Foto Sampah (AI ONNX)" FontWeight="SemiBold" Foreground="#1B5E20"/>
-                                    <Button Content="Pilih Foto Sampah..." Command="{Binding KlasifikasiFotoCommand}" Margin="0,6,0,6" Padding="8,5"/>
+                                    <Grid Margin="0,6,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Content="Pilih Foto..." Command="{Binding KlasifikasiFotoCommand}" Padding="6,5" Margin="0,0,4,0"/>
+                                        <Button Grid.Column="1" Content="Ambil Kamera" Command="{Binding KlasifikasiKameraCommand}" Padding="6,5" Margin="4,0,0,0" Background="#2E7D32" Foreground="White"/>
+                                    </Grid>
                                     <TextBlock Text="{Binding HasilPrediksiAi}" TextWrapping="Wrap" FontSize="12" Foreground="#2E7D32"/>
                                 </StackPanel>
                             </Border>
@@ -146,6 +153,15 @@
                                 <DataGridTextColumn Header="Harga/kg" Binding="{Binding Kategori.HargaPerKg, StringFormat=N0}" Width="120"/>
                                 <DataGridTextColumn Header="Berat (kg)" Binding="{Binding BeratKg, StringFormat=N2}" Width="100"/>
                                 <DataGridTextColumn Header="Subtotal (Rp)" Binding="{Binding Subtotal, StringFormat=N0}" Width="140"/>
+                                <DataGridTemplateColumn Header="Aksi" Width="75">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="Hapus" Padding="6,2" Background="#C62828" Foreground="White"
+                                                    Command="{Binding DataContext.HapusBarisSetoranCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </DockPanel>
@@ -203,13 +219,16 @@
                         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
                             <TextBlock Text="Kelola Data Nasabah" FontSize="16" FontWeight="Bold" Margin="0,0,0,8"/>
                             <DockPanel>
-                                <Button DockPanel.Dock="Right" Content="Tambah Nasabah" Command="{Binding TambahNasabahCommand}"
-                                        Padding="12,6" Background="#2E7D32" Foreground="White" Margin="8,0,0,0"/>
-                                <TextBox Text="{Binding NamaNasabahBaru}" Padding="6" ToolTip="Masukkan nama lengkap nasabah baru"/>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="8,0,0,0">
+                                    <Button Content="Tambah" Command="{Binding TambahNasabahCommand}" Padding="10,6" Background="#2E7D32" Foreground="White" Margin="0,0,4,0"/>
+                                    <Button Content="Ubah" Command="{Binding UbahNasabahCommand}" Padding="10,6" Background="#0277BD" Foreground="White" Margin="0,0,4,0"/>
+                                    <Button Content="Hapus" Command="{Binding HapusNasabahCommand}" Padding="10,6" Background="#C62828" Foreground="White"/>
+                                </StackPanel>
+                                <TextBox Text="{Binding NamaNasabahBaru}" Padding="6" ToolTip="Masukkan nama lengkap nasabah"/>
                             </DockPanel>
                         </StackPanel>
 
-                        <DataGrid ItemsSource="{Binding DaftarNasabah}" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid ItemsSource="{Binding DaftarNasabah}" SelectedItem="{Binding NasabahMasterTerpilih}" AutoGenerateColumns="False" IsReadOnly="True">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="70"/>
                                 <DataGridTextColumn Header="Nama Nasabah" Binding="{Binding Nama}" Width="*"/>
@@ -232,11 +251,15 @@
                                 <TextBox Grid.Column="0" Text="{Binding NamaKategoriBaru}" Padding="6" Margin="0,0,4,0" ToolTip="Nama Kategori"/>
                                 <TextBox Grid.Column="1" Text="{Binding HargaKategoriBaru}" Padding="6" Margin="0,0,4,0" ToolTip="Harga/kg"/>
                                 <TextBox Grid.Column="2" Text="{Binding EmisiKategoriBaru}" Padding="6" Margin="0,0,4,0" ToolTip="Faktor Emisi CO2e"/>
-                                <Button Grid.Column="3" Content="+ Simpan" Command="{Binding TambahKategoriCommand}" Padding="10,6" Background="#2E7D32" Foreground="White"/>
+                                <StackPanel Grid.Column="3" Orientation="Horizontal">
+                                    <Button Content="+" Command="{Binding TambahKategoriCommand}" Padding="9,6" Background="#2E7D32" Foreground="White" ToolTip="Tambah Kategori" Margin="0,0,3,0"/>
+                                    <Button Content="Ubah" Command="{Binding UbahKategoriCommand}" Padding="8,6" Background="#0277BD" Foreground="White" Margin="0,0,3,0"/>
+                                    <Button Content="Hapus" Command="{Binding HapusKategoriCommand}" Padding="8,6" Background="#C62828" Foreground="White"/>
+                                </StackPanel>
                             </Grid>
                         </StackPanel>
 
-                        <DataGrid ItemsSource="{Binding DaftarKategori}" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid ItemsSource="{Binding DaftarKategori}" SelectedItem="{Binding KategoriMasterTerpilih}" AutoGenerateColumns="False" IsReadOnly="True">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Kategori" Binding="{Binding Nama}" Width="*"/>
                                 <DataGridTextColumn Header="Harga/kg" Binding="{Binding HargaPerKg, StringFormat=N0}" Width="110"/>

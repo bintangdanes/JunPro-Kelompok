@@ -31,6 +31,12 @@ public class NasabahRepository : IRepository<Nasabah>
         _db.Nasabah.Add(entitas);
     }
 
+    public void Hapus(Nasabah entitas)
+    {
+        ArgumentNullException.ThrowIfNull(entitas);
+        _db.Nasabah.Remove(entitas);
+    }
+
     public int SimpanPerubahan() => _db.SaveChanges();
 
     public Nasabah CariByKode(string kode)
