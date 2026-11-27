@@ -643,6 +643,64 @@
                     </DockPanel>
                 </Border>
             </TabItem>
+
+            <!-- TAB 6: KELOLA AKUN PENGGUNA (KHUSUS PENGURUS) -->
+            <TabItem Visibility="{Binding IsPengurus, Converter={StaticResource BoolToVis}}">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE716;" FontSize="14" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                        <TextBlock Text="Kelola Akun" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
+
+                <Border Background="White" BorderBrush="#DCE5DF" BorderThickness="1" CornerRadius="10" Padding="20" Effect="{StaticResource CardShadow}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="365"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Form Akun Operator / Pengurus -->
+                        <Border Grid.Column="0" Background="#F9FBF9" BorderBrush="#DCE5DF" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,16,0">
+                            <StackPanel>
+                                <TextBlock Text="Kelola Akun Operator &amp; Pengurus" FontSize="16" FontWeight="Bold" Foreground="#1B5E20" Margin="0,0,0,14"/>
+
+                                <TextBlock Text="Username" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding UsernameAkunBaru}" ToolTip="Username login (huruf kecil tanpa spasi)" Margin="0,0,0,12"/>
+
+                                <TextBlock Text="Nama Lengkap" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding NamaLengkapAkunBaru}" ToolTip="Nama yang tampil di header aplikasi" Margin="0,0,0,12"/>
+
+                                <TextBlock Text="Peran (RBAC)" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,0,5"/>
+                                <ComboBox ItemsSource="{Binding PilihanPeran}" SelectedItem="{Binding PeranAkunBaru}"
+                                          IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True" Margin="0,0,0,12"/>
+
+                                <TextBlock Text="Password (min. 6 karakter; kosongkan saat ubah jika tetap)" FontWeight="SemiBold" FontSize="12" Foreground="#37474F" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding PasswordAkunBaru}" ToolTip="Isi password baru" Margin="0,0,0,16"/>
+
+                                <UniformGrid Columns="2" Margin="0,0,0,8">
+                                    <Button Content="Tambah Akun" Command="{Binding TambahAkunCommand}" Background="#2E7D32" Foreground="White" FontWeight="SemiBold" Margin="0,0,4,0"/>
+                                    <Button Content="Ubah / Reset Pass" Command="{Binding UbahAkunCommand}" Background="#0277BD" Foreground="White" FontWeight="SemiBold" Margin="4,0,0,0"/>
+                                </UniformGrid>
+                                <UniformGrid Columns="2">
+                                    <Button Content="Hapus Akun" Command="{Binding HapusAkunCommand}" Background="#C62828" Foreground="White" FontWeight="SemiBold" Margin="0,0,4,0"/>
+                                    <Button Content="Reset Form" Command="{Binding ResetFormAkunCommand}" Background="#607D8B" Foreground="White" FontWeight="SemiBold" Margin="4,0,0,0"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Tabel Daftar Akun -->
+                        <DataGrid Grid.Column="1" ItemsSource="{Binding DaftarPengguna}" SelectedItem="{Binding PenggunaTerpilih}" AutoGenerateColumns="False" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="65"/>
+                                <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="160"/>
+                                <DataGridTextColumn Header="Nama Lengkap" Binding="{Binding NamaLengkap}" Width="*"/>
+                                <DataGridTextColumn Header="Peran" Binding="{Binding Peran}" Width="120"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+            </TabItem>
         </TabControl>
     </DockPanel>
 </Window>

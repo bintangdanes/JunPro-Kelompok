@@ -68,6 +68,50 @@ public class LayananAutentikasi
     public IEnumerable<Pengguna> GetSemua() =>
         _db.Pengguna.OrderBy(p => p.Username).ToList();
 
+    public void UbahPengguna(int id, string namaLengkap, string peran, string? passwordBaru = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(namaLengkap);
+        var user = _db.Pengguna.Find(id)
+            ?? throw new KeyNotFoundException($"Pengguna dengan Id {id} tidak ditemukan.");
+
+        string peranNormal = string.Equals(peran, Pengguna.PeranPengurus, StringComparison.OrdinalIgnoreCase)
+            ? Pengguna.PeranPengurus
+            : Pengguna.PeranOperator;
+
+        if (user.IsPengurus && peranNormal != Pengguna.PeranPengurus &&
+            _db.Pengguna.Count(p => p.Peran == Pengguna.PeranPengurus) <= 1)
+        {
+            throw new InvalidOperationException("Tidak dapat mengubah peran pengurus terakhir menjadi operator.");
+        }
+
+        user.NamaLengkap = namaLengkap.Trim();
+        user.Peran = peranNormal;
+
+        if (!string.IsNullOrWhiteSpace(passwordBaru))
+        {
+            if (passwordBaru.Length < 6)
+                throw new ArgumentException("Password baru minimal 6 karakter.", nameof(passwordBaru));
+            user.PasswordHash = HashPassword(passwordBaru);
+        }
+
+        _db.SaveChanges();
+    }
+
+    public void HapusPengguna(int id, int? idPenggunaAktif = null)
+    {
+        if (idPenggunaAktif.HasValue && id == idPenggunaAktif.Value)
+            throw new InvalidOperationException("Tidak dapat menghapus akun yang sedang digunakan untuk login.");
+
+        var user = _db.Pengguna.Find(id)
+            ?? throw new KeyNotFoundException($"Pengguna dengan Id {id} tidak ditemukan.");
+
+        if (user.IsPengurus && _db.Pengguna.Count(p => p.Peran == Pengguna.PeranPengurus) <= 1)
+            throw new InvalidOperationException("Minimal harus tersisa satu akun Pengurus.");
+
+        _db.Pengguna.Remove(user);
+        _db.SaveChanges();
+    }
+
     public static string HashPassword(string password)
     {
         byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);

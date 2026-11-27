@@ -96,6 +96,40 @@ public class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<BarisBukuTabungan> DaftarBarisBukuTabungan { get; } = new();
     public ObservableCollection<string> DaftarKandidatAi { get; } = new();
     public ObservableCollection<string> DaftarPeringatanAi { get; } = new();
+    public ObservableCollection<Pengguna> DaftarPengguna { get; } = new();
+
+    public List<string> PilihanPeran { get; } = [Pengguna.PeranOperator, Pengguna.PeranPengurus];
+
+    // --- Form Kelola Akun (Pengurus) ---
+    private string _usernameAkunBaru = string.Empty;
+    public string UsernameAkunBaru { get => _usernameAkunBaru; set { _usernameAkunBaru = value; OnPropertyChanged(); } }
+
+    private string _namaLengkapAkunBaru = string.Empty;
+    public string NamaLengkapAkunBaru { get => _namaLengkapAkunBaru; set { _namaLengkapAkunBaru = value; OnPropertyChanged(); } }
+
+    private string _passwordAkunBaru = string.Empty;
+    public string PasswordAkunBaru { get => _passwordAkunBaru; set { _passwordAkunBaru = value; OnPropertyChanged(); } }
+
+    private string _peranAkunBaru = Pengguna.PeranOperator;
+    public string PeranAkunBaru { get => _peranAkunBaru; set { _peranAkunBaru = value; OnPropertyChanged(); } }
+
+    private Pengguna? _penggunaTerpilih;
+    public Pengguna? PenggunaTerpilih
+    {
+        get => _penggunaTerpilih;
+        set
+        {
+            _penggunaTerpilih = value;
+            OnPropertyChanged();
+            if (value != null)
+            {
+                UsernameAkunBaru = value.Username;
+                NamaLengkapAkunBaru = value.NamaLengkap;
+                PeranAkunBaru = value.Peran;
+                PasswordAkunBaru = string.Empty;
+            }
+        }
+    }
 
     public List<PilihanBulan> DaftarBulan { get; } =
     [
@@ -299,6 +333,10 @@ public class MainViewModel : INotifyPropertyChanged
     public ICommand EksporRiwayatPdfCommand { get; }
     public ICommand BackupDatabaseCommand { get; }
     public ICommand RestoreDatabaseCommand { get; }
+    public ICommand TambahAkunCommand { get; }
+    public ICommand UbahAkunCommand { get; }
+    public ICommand HapusAkunCommand { get; }
+    public ICommand ResetFormAkunCommand { get; }
 
     public MainViewModel(Pengguna? penggunaAktif = null)
     {
@@ -343,6 +381,10 @@ public class MainViewModel : INotifyPropertyChanged
         EksporRiwayatPdfCommand = new RelayCommand(_ => EksporRiwayatPdf());
         BackupDatabaseCommand = new RelayCommand(_ => BackupDatabase());
         RestoreDatabaseCommand = new RelayCommand(_ => RestoreDatabase());
+        TambahAkunCommand = new RelayCommand(_ => TambahAkun());
+        UbahAkunCommand = new RelayCommand(_ => UbahAkun());
+        HapusAkunCommand = new RelayCommand(_ => HapusAkun());
+        ResetFormAkunCommand = new RelayCommand(_ => ResetFormAkun());
 
         MuatSemuaData();
     }
@@ -391,6 +433,94 @@ public class MainViewModel : INotifyPropertyChanged
 
         MuatLaporan();
         SegarkanRiwayatTransaksi();
+        SegarkanDaftarPengguna();
+    }
+
+    private void SegarkanDaftarPengguna()
+    {
+        DaftarPengguna.Clear();
+        var auth = new LayananAutentikasi(_db);
+        auth.PastikanAkunBawaan();
+        foreach (var p in auth.GetSemua())
+            DaftarPengguna.Add(p);
+    }
+
+    private void TambahAkun()
+    {
+        if (!IsPengurus) return;
+        try
+        {
+            if (string.IsNullOrWhiteSpace(UsernameAkunBaru) || string.IsNullOrWhiteSpace(NamaLengkapAkunBaru) || string.IsNullOrWhiteSpace(PasswordAkunBaru))
+            {
+                MessageBox.Show("Username, Nama Lengkap, dan Password wajib diisi.", "Validasi", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            var auth = new LayananAutentikasi(_db);
+            auth.TambahPengguna(UsernameAkunBaru, NamaLengkapAkunBaru, PasswordAkunBaru, PeranAkunBaru);
+            ResetFormAkun();
+            SegarkanDaftarPengguna();
+            MessageBox.Show("Akun pengguna baru berhasil dibuat.", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Gagal Tambah Akun", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void UbahAkun()
+    {
+        if (!IsPengurus) return;
+        if (PenggunaTerpilih == null)
+        {
+            MessageBox.Show("Pilih akun di tabel terlebih dahulu.", "Validasi", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        try
+        {
+            var auth = new LayananAutentikasi(_db);
+            auth.UbahPengguna(PenggunaTerpilih.Id, NamaLengkapAkunBaru, PeranAkunBaru, PasswordAkunBaru);
+            ResetFormAkun();
+            SegarkanDaftarPengguna();
+            MessageBox.Show("Data akun berhasil diperbarui.", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Gagal Ubah Akun", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void HapusAkun()
+    {
+        if (!IsPengurus) return;
+        if (PenggunaTerpilih == null)
+        {
+            MessageBox.Show("Pilih akun di tabel terlebih dahulu.", "Validasi", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        if (MessageBox.Show($"Hapus akun '{PenggunaTerpilih.Username}' ({PenggunaTerpilih.NamaLengkap})?", "Konfirmasi", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            var auth = new LayananAutentikasi(_db);
+            auth.HapusPengguna(PenggunaTerpilih.Id, PenggunaAktif?.Id);
+            ResetFormAkun();
+            SegarkanDaftarPengguna();
+            MessageBox.Show("Akun berhasil dihapus.", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Hapus Akun Ditolak", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void ResetFormAkun()
+    {
+        PenggunaTerpilih = null;
+        UsernameAkunBaru = string.Empty;
+        NamaLengkapAkunBaru = string.Empty;
+        PasswordAkunBaru = string.Empty;
+        PeranAkunBaru = Pengguna.PeranOperator;
     }
 
     private void SegarkanRiwayatTransaksi()
