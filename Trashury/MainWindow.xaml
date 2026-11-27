@@ -23,7 +23,10 @@
                     <Border CornerRadius="8" ClipToBounds="True" Width="38" Height="38" Margin="0,0,12,0" BorderBrush="#4CAF50" BorderThickness="1">
                         <Image Source="pack://application:,,,/Assets/trashury-icon.png" Stretch="UniformToFill"/>
                     </Border>
-                    <TextBlock Text="TRASHURY" FontSize="22" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="TRASHURY" FontSize="20" FontWeight="Bold" Foreground="White" LineHeight="22"/>
+                        <TextBlock Text="Smart Waste Bank &amp; Climate Action" FontSize="11" Foreground="#C8E6C9" Margin="0,1,0,0"/>
+                    </StackPanel>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
@@ -54,23 +57,61 @@
                     </StackPanel>
                 </TabItem.Header>
 
-                <Border Background="White" BorderBrush="#DCE5DF" BorderThickness="1" CornerRadius="10" Padding="20" Effect="{StaticResource CardShadow}">
+                <Border Background="White" BorderBrush="#DCE5DF" BorderThickness="1" CornerRadius="10" Padding="18" Effect="{StaticResource CardShadow}">
                     <Grid>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <!-- Filter Bulan & Tahun + Tombol Ekspor -->
-                        <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <!-- Compact Eco Hero Banner -->
+                        <Border Grid.Row="0" CornerRadius="12" BorderBrush="#D0E6D4" BorderThickness="1" Padding="18,11" Margin="0,0,0,12">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.5">
+                                    <GradientStop Color="#F4FBF5" Offset="0"/>
+                                    <GradientStop Color="#E6F5E9" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,5">
+                                        <TextBlock Text="{Binding SapaanDashboard}" FontSize="17" FontWeight="Bold" Foreground="#1B5E20" VerticalAlignment="Center"/>
+                                        <Border Background="#FFFFFF" BorderBrush="#C8E6C9" BorderThickness="1" CornerRadius="10" Padding="9,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding TanggalHariIni}" FontSize="11" Foreground="#455A64" FontWeight="SemiBold"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE945;" FontSize="12.5" Foreground="#2E7D32" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                        <TextBlock Text="{Binding EkuivalenPohonDashboard}" FontSize="12" Foreground="#2E7D32" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <Image Grid.Column="1"
+                                       Source="pack://application:,,,/Assets/dashboard-eco-banner.png"
+                                       Height="68"
+                                       Stretch="Uniform"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Right"
+                                       Margin="16,0,4,0"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Filter Bulan & Tahun + Tombol Ekspor (Compact) -->
+                        <Grid Grid.Row="1" Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="Bulan:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="13" Foreground="#37474F" Margin="0,0,6,0"/>
+                                <TextBlock Text="Bulan:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="12" Foreground="#37474F" Margin="0,0,6,0"/>
                                 <ComboBox ItemsSource="{Binding DaftarBulan}"
                                           SelectedValue="{Binding BulanLaporan}"
                                           SelectedValuePath="Nomor"
@@ -79,70 +120,78 @@
                                           IsTextSearchEnabled="True"
                                           StaysOpenOnEdit="True"
                                           TextSearch.TextPath="Nama"
-                                          Width="140" Margin="0,0,14,0"/>
-                                <TextBlock Text="Tahun:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="13" Foreground="#37474F" Margin="0,0,6,0"/>
-                                <TextBox Text="{Binding TahunLaporan}" Width="78" Margin="0,0,12,0"/>
-                                <Button Content="Muat Rekap" Command="{Binding MuatLaporanCommand}" Background="#1B5E20" Foreground="White" FontWeight="SemiBold"/>
+                                          Width="124" Height="30" FontSize="12" Padding="8,4" Margin="0,0,12,0"/>
+                                <TextBlock Text="Tahun:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="12" Foreground="#37474F" Margin="0,0,6,0"/>
+                                <TextBox Text="{Binding TahunLaporan}" Width="64" Height="30" FontSize="12" Padding="8,4" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
+                                <Button Content="Muat Rekap" Command="{Binding MuatLaporanCommand}" Height="30" Padding="12,0" FontSize="12" Background="#1B5E20" Foreground="White" FontWeight="SemiBold"/>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Visibility="{Binding IsPengurus, Converter={StaticResource BoolToVis}}">
-                                <Button Command="{Binding EksporCsvCommand}" Background="#0277BD" Foreground="White" FontWeight="SemiBold" Margin="0,0,8,0">
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Visibility="{Binding IsPengurus, Converter={StaticResource BoolToVis}}">
+                                <Button Command="{Binding EksporCsvCommand}" Height="30" Padding="11,0" FontSize="12" Background="#0277BD" Foreground="White" FontWeight="SemiBold" Margin="0,0,8,0">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8A5;" FontSize="13" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8A5;" FontSize="12" VerticalAlignment="Center" Margin="0,0,5,0"/>
                                         <TextBlock Text="Ekspor CSV" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
-                                <Button Command="{Binding EksporPdfCommand}" Background="#C62828" Foreground="White" FontWeight="SemiBold">
+                                <Button Command="{Binding EksporPdfCommand}" Height="30" Padding="11,0" FontSize="12" Background="#C62828" Foreground="White" FontWeight="SemiBold">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE749;" FontSize="13" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE749;" FontSize="12" VerticalAlignment="Center" Margin="0,0,5,0"/>
                                         <TextBlock Text="Ekspor PDF (DLH)" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
                         </Grid>
 
-                        <!-- Kartu Ringkasan Climate Action -->
-                        <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,18">
-                            <Border Background="#E8F5E9" BorderBrush="#C8E6C9" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,8,0">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE945;" FontSize="14" Foreground="#2E7D32" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                        <TextBlock Text="Estimasi CO2e Dihindari" Foreground="#2E7D32" FontSize="12.5" FontWeight="SemiBold"/>
+                        <!-- Kartu Ringkasan Climate Action (Modern Compact) -->
+                        <UniformGrid Grid.Row="2" Columns="4" Margin="0,0,0,14">
+                            <Border Background="#FFFFFF" BorderBrush="#DCE8DF" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,7,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Width="38" Height="38" CornerRadius="19" Background="#E8F5E9" Margin="0,0,11,0">
+                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE945;" FontSize="16" Foreground="#2E7D32" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding TotalEmisiDashboard}" FontSize="17" FontWeight="Bold" Foreground="#1B5E20"/>
+                                        <TextBlock Text="CO2e Dihindari" Foreground="#607D8B" FontSize="11.5" Margin="0,1,0,0"/>
                                     </StackPanel>
-                                    <TextBlock Text="{Binding TotalEmisiDashboard}" FontSize="23" FontWeight="Bold" Foreground="#1B5E20"/>
                                 </StackPanel>
                             </Border>
-                            <Border Background="#E3F2FD" BorderBrush="#BBDEFB" BorderThickness="1" CornerRadius="10" Padding="16" Margin="4,0">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE7B8;" FontSize="14" Foreground="#1565C0" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                        <TextBlock Text="Total Sampah Terkumpul" Foreground="#1565C0" FontSize="12.5" FontWeight="SemiBold"/>
+                            <Border Background="#FFFFFF" BorderBrush="#DCE8DF" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="3.5,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Width="38" Height="38" CornerRadius="19" Background="#E3F2FD" Margin="0,0,11,0">
+                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE7B8;" FontSize="16" Foreground="#1565C0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding TotalBeratDashboard}" FontSize="17" FontWeight="Bold" Foreground="#0D47A1"/>
+                                        <TextBlock Text="Sampah Terkumpul" Foreground="#607D8B" FontSize="11.5" Margin="0,1,0,0"/>
                                     </StackPanel>
-                                    <TextBlock Text="{Binding TotalBeratDashboard}" FontSize="23" FontWeight="Bold" Foreground="#0D47A1"/>
                                 </StackPanel>
                             </Border>
-                            <Border Background="#FFF8E1" BorderBrush="#FFECB3" BorderThickness="1" CornerRadius="10" Padding="16" Margin="4,0">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8C7;" FontSize="14" Foreground="#EF6C00" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                        <TextBlock Text="Total Nilai Setoran" Foreground="#EF6C00" FontSize="12.5" FontWeight="SemiBold"/>
+                            <Border Background="#FFFFFF" BorderBrush="#DCE8DF" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="3.5,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Width="38" Height="38" CornerRadius="19" Background="#FFF8E1" Margin="0,0,11,0">
+                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8C7;" FontSize="16" Foreground="#EF6C00" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding TotalSetoranDashboard}" FontSize="17" FontWeight="Bold" Foreground="#E65100"/>
+                                        <TextBlock Text="Nilai Setoran" Foreground="#607D8B" FontSize="11.5" Margin="0,1,0,0"/>
                                     </StackPanel>
-                                    <TextBlock Text="{Binding TotalSetoranDashboard}" FontSize="23" FontWeight="Bold" Foreground="#E65100"/>
                                 </StackPanel>
                             </Border>
-                            <Border Background="#FCE4EC" BorderBrush="#F8BBD0" BorderThickness="1" CornerRadius="10" Padding="16" Margin="8,0,0,0">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8AB;" FontSize="14" Foreground="#AD1457" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                        <TextBlock Text="Total Penarikan Saldo" Foreground="#AD1457" FontSize="12.5" FontWeight="SemiBold"/>
+                            <Border Background="#FFFFFF" BorderBrush="#DCE8DF" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="7,0,0,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Width="38" Height="38" CornerRadius="19" Background="#FCE4EC" Margin="0,0,11,0">
+                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8AB;" FontSize="16" Foreground="#AD1457" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding TotalPenarikanDashboard}" FontSize="17" FontWeight="Bold" Foreground="#880E4F"/>
+                                        <TextBlock Text="Penarikan Saldo" Foreground="#607D8B" FontSize="11.5" Margin="0,1,0,0"/>
                                     </StackPanel>
-                                    <TextBlock Text="{Binding TotalPenarikanDashboard}" FontSize="23" FontWeight="Bold" Foreground="#880E4F"/>
                                 </StackPanel>
                             </Border>
                         </UniformGrid>
 
                         <!-- Tabel Rincian + Grafik Kontribusi CO2e -->
-                        <Grid Grid.Row="2">
+                        <Grid Grid.Row="3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="3*"/>
                                 <ColumnDefinition Width="2*"/>
@@ -161,18 +210,22 @@
                                 <DockPanel>
                                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,14">
                                         <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE9D2;" FontSize="15" Foreground="#1B5E20" VerticalAlignment="Center" Margin="0,0,7,0"/>
-                                        <TextBlock Text="Grafik Kontribusi Reduksi CO2e" FontSize="14.5" FontWeight="Bold" Foreground="#1B5E20"/>
+                                        <TextBlock Text="Kontribusi Reduksi CO2e" FontSize="14" FontWeight="Bold" Foreground="#1B5E20"/>
                                     </StackPanel>
                                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                                         <ItemsControl ItemsSource="{Binding DataGrafikEmisi}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Margin="0,0,0,13">
-                                                        <DockPanel Margin="0,0,0,5">
-                                                            <TextBlock DockPanel.Dock="Left" Text="{Binding NamaKategori}" FontWeight="SemiBold" FontSize="12.5" Foreground="#263238"/>
-                                                            <TextBlock DockPanel.Dock="Right" Text="{Binding TotalCO2eKg, StringFormat='{}{0:N2} kg CO2e'}" FontSize="12.5" Foreground="#2E7D32" FontWeight="SemiBold"/>
-                                                        </DockPanel>
-                                                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding Persentase}" Height="12" Foreground="#2E7D32" Background="#E4F0E6"/>
+                                                        <Grid Margin="0,0,0,5">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="{Binding NamaKategori}" FontWeight="SemiBold" FontSize="12.5" Foreground="#263238" TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Grid.Column="1" Text="{Binding TotalCO2eKg, StringFormat='{}{0:N2} kg CO2e'}" FontSize="12.5" Foreground="#2E7D32" FontWeight="SemiBold" Margin="8,0,0,0"/>
+                                                        </Grid>
+                                                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding Persentase}" Height="11" Foreground="#2E7D32" Background="#E4F0E6"/>
                                                     </StackPanel>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>

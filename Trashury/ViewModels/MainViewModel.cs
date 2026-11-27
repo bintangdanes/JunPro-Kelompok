@@ -79,11 +79,29 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsPengurus));
             OnPropertyChanged(nameof(NamaPeranAktif));
+            OnPropertyChanged(nameof(SapaanDashboard));
         }
     }
 
     public bool IsPengurus => PenggunaAktif?.IsPengurus ?? true;
     public string NamaPeranAktif => PenggunaAktif?.NamaLengkap ?? "Pengurus Bank Sampah";
+    public string SapaanDashboard
+    {
+        get
+        {
+            var jam = DateTime.Now.Hour;
+            var salam = jam switch
+            {
+                >= 4 and < 11 => "Selamat pagi",
+                >= 11 and < 15 => "Selamat siang",
+                >= 15 and < 18 => "Selamat sore",
+                _ => "Selamat malam"
+            };
+            return $"{salam}, {NamaPeranAktif}!";
+        }
+    }
+
+    public string TanggalHariIni => DateTime.Now.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID"));
 
     // --- Koleksi Data ---
     public ObservableCollection<Nasabah> DaftarNasabah { get; } = new();
@@ -296,6 +314,7 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(TotalEmisiDashboard));
             OnPropertyChanged(nameof(TotalSetoranDashboard));
             OnPropertyChanged(nameof(TotalPenarikanDashboard));
+            OnPropertyChanged(nameof(EkuivalenPohonDashboard));
         }
     }
 
@@ -303,6 +322,16 @@ public class MainViewModel : INotifyPropertyChanged
     public string TotalEmisiDashboard => $"{RekapSaatIni?.TotalCO2eKg ?? 0:N2} kg CO2e";
     public string TotalSetoranDashboard => $"Rp {RekapSaatIni?.TotalNilaiSetoran ?? 0:N0}";
     public string TotalPenarikanDashboard => $"Rp {RekapSaatIni?.TotalPenarikan ?? 0:N0}";
+    public string EkuivalenPohonDashboard
+    {
+        get
+        {
+            var co2 = RekapSaatIni?.TotalCO2eKg ?? 0m;
+            var pohon = co2 / 21m;
+            var km = co2 / 0.12m;
+            return $"Setara {pohon:N2} pohon/thn  •  Hemat {km:N0} km emisi kendaraan";
+        }
+    }
 
     // --- Commands ---
     public ICommand LogoutCommand { get; }

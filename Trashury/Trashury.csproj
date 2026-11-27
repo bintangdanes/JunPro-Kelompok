@@ -13,6 +13,7 @@
   <ItemGroup>
     <Resource Include="Assets\trashury-icon.png" />
     <Resource Include="Assets\trashury.ico" />
+    <Resource Include="Assets\dashboard-eco-banner.png" />
   </ItemGroup>
 
   <ItemGroup>
