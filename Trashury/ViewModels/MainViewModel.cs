@@ -83,9 +83,7 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     public bool IsPengurus => PenggunaAktif?.IsPengurus ?? true;
-    public string NamaPeranAktif => PenggunaAktif != null
-        ? $"{PenggunaAktif.NamaLengkap} ({PenggunaAktif.Peran})"
-        : "Pengurus Bank Sampah (Pengurus)";
+    public string NamaPeranAktif => PenggunaAktif?.NamaLengkap ?? "Pengurus Bank Sampah";
 
     // --- Koleksi Data ---
     public ObservableCollection<Nasabah> DaftarNasabah { get; } = new();
@@ -95,6 +93,9 @@ public class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<RekapKategori> RincianLaporan { get; } = new();
     public ObservableCollection<BarGrafikEmisi> DataGrafikEmisi { get; } = new();
     public ObservableCollection<ItemRiwayatTransaksi> DaftarRiwayatTransaksi { get; } = new();
+    public ObservableCollection<BarisBukuTabungan> DaftarBarisBukuTabungan { get; } = new();
+    public ObservableCollection<string> DaftarKandidatAi { get; } = new();
+    public ObservableCollection<string> DaftarPeringatanAi { get; } = new();
 
     public List<PilihanBulan> DaftarBulan { get; } =
     [
@@ -117,6 +118,20 @@ public class MainViewModel : INotifyPropertyChanged
     {
         get => _kataKunciRiwayat;
         set { _kataKunciRiwayat = value; OnPropertyChanged(); SegarkanRiwayatTransaksi(); }
+    }
+
+    private DateTime? _tanggalDariRiwayat;
+    public DateTime? TanggalDariRiwayat
+    {
+        get => _tanggalDariRiwayat;
+        set { _tanggalDariRiwayat = value; OnPropertyChanged(); SegarkanRiwayatTransaksi(); }
+    }
+
+    private DateTime? _tanggalSampaiRiwayat;
+    public DateTime? TanggalSampaiRiwayat
+    {
+        get => _tanggalSampaiRiwayat;
+        set { _tanggalSampaiRiwayat = value; OnPropertyChanged(); SegarkanRiwayatTransaksi(); }
     }
 
     // --- Form Master Nasabah ---
@@ -188,6 +203,12 @@ public class MainViewModel : INotifyPropertyChanged
     private string _hasilPrediksiAi = "Belum ada foto sampah diklasifikasi.";
     public string HasilPrediksiAi { get => _hasilPrediksiAi; set { _hasilPrediksiAi = value; OnPropertyChanged(); } }
 
+    private string _sumberModelAi = string.Empty;
+    public string SumberModelAi { get => _sumberModelAi; set { _sumberModelAi = value; OnPropertyChanged(); OnPropertyChanged(nameof(AdaSumberModelAi)); } }
+    public bool AdaSumberModelAi => !string.IsNullOrWhiteSpace(SumberModelAi);
+    public bool AdaKandidatAi => DaftarKandidatAi.Count > 0;
+    public bool AdaPeringatanAi => DaftarPeringatanAi.Count > 0;
+
     private ImageSource? _previewGambarAi;
     public ImageSource? PreviewGambarAi { get => _previewGambarAi; set { _previewGambarAi = value; OnPropertyChanged(); } }
 
@@ -212,6 +233,15 @@ public class MainViewModel : INotifyPropertyChanged
 
     private string _ringkasanBukuTabungan = "Pilih nasabah untuk melihat riwayat buku tabungan.";
     public string RingkasanBukuTabungan { get => _ringkasanBukuTabungan; set { _ringkasanBukuTabungan = value; OnPropertyChanged(); } }
+
+    private string _totalMasukBukuTabungan = "Rp 0";
+    public string TotalMasukBukuTabungan { get => _totalMasukBukuTabungan; set { _totalMasukBukuTabungan = value; OnPropertyChanged(); } }
+
+    private string _totalKeluarBukuTabungan = "Rp 0";
+    public string TotalKeluarBukuTabungan { get => _totalKeluarBukuTabungan; set { _totalKeluarBukuTabungan = value; OnPropertyChanged(); } }
+
+    private string _saldoAkhirBukuTabungan = "Rp 0";
+    public string SaldoAkhirBukuTabungan { get => _saldoAkhirBukuTabungan; set { _saldoAkhirBukuTabungan = value; OnPropertyChanged(); } }
 
     // --- Dashboard Iklim & Laporan Bulanan ---
     private int _bulanLaporan = DateTime.Now.Month;
@@ -262,6 +292,11 @@ public class MainViewModel : INotifyPropertyChanged
     public ICommand EksporPdfCommand { get; }
     public ICommand BatalkanTransaksiCommand { get; }
     public ICommand CetakUlangBuktiCommand { get; }
+    public ICommand FilterRiwayat7HariCommand { get; }
+    public ICommand FilterRiwayat30HariCommand { get; }
+    public ICommand FilterRiwayatSemuaCommand { get; }
+    public ICommand EksporRiwayatCsvCommand { get; }
+    public ICommand EksporRiwayatPdfCommand { get; }
     public ICommand BackupDatabaseCommand { get; }
     public ICommand RestoreDatabaseCommand { get; }
 
@@ -301,6 +336,11 @@ public class MainViewModel : INotifyPropertyChanged
         EksporPdfCommand = new RelayCommand(_ => EksporPdf());
         BatalkanTransaksiCommand = new RelayCommand(obj => { if (obj is ItemRiwayatTransaksi item) BatalkanTransaksi(item); });
         CetakUlangBuktiCommand = new RelayCommand(obj => { if (obj is ItemRiwayatTransaksi item) CetakUlangBuktiSetoran(item); });
+        FilterRiwayat7HariCommand = new RelayCommand(_ => { TanggalDariRiwayat = DateTime.Today.AddDays(-6); TanggalSampaiRiwayat = DateTime.Today; });
+        FilterRiwayat30HariCommand = new RelayCommand(_ => { TanggalDariRiwayat = DateTime.Today.AddDays(-29); TanggalSampaiRiwayat = DateTime.Today; });
+        FilterRiwayatSemuaCommand = new RelayCommand(_ => { TanggalDariRiwayat = null; TanggalSampaiRiwayat = null; FilterJenisRiwayat = "Semua"; KataKunciRiwayat = string.Empty; });
+        EksporRiwayatCsvCommand = new RelayCommand(_ => EksporRiwayatCsv());
+        EksporRiwayatPdfCommand = new RelayCommand(_ => EksporRiwayatPdf());
         BackupDatabaseCommand = new RelayCommand(_ => BackupDatabase());
         RestoreDatabaseCommand = new RelayCommand(_ => RestoreDatabase());
 
@@ -361,6 +401,11 @@ public class MainViewModel : INotifyPropertyChanged
 
         foreach (var t in _transaksiRepo.GetAll())
         {
+            if (TanggalDariRiwayat.HasValue && t.Tanggal.Date < TanggalDariRiwayat.Value.Date)
+                continue;
+            if (TanggalSampaiRiwayat.HasValue && t.Tanggal.Date > TanggalSampaiRiwayat.Value.Date)
+                continue;
+
             bool isSetoran = t is SetoranSampah;
             string jenis = isSetoran ? "Setoran" : "Penarikan";
 
@@ -379,6 +424,54 @@ public class MainViewModel : INotifyPropertyChanged
 
             DaftarRiwayatTransaksi.Add(new ItemRiwayatTransaksi(
                 t.Id, t.Tanggal, t.NasabahId, namaNasabah, jenis, rincian, t.Nominal, isSetoran));
+        }
+    }
+
+    private void EksporRiwayatCsv()
+    {
+        if (DaftarRiwayatTransaksi.Count == 0)
+        {
+            MessageBox.Show("Tidak ada data riwayat transaksi untuk diekspor.", "Informasi", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Title = "Ekspor Riwayat Transaksi (CSV)",
+            Filter = "CSV File|*.csv",
+            FileName = $"Riwayat_Transaksi_TRASHURY_{DateTime.Now:yyyyMMdd}.csv"
+        };
+        if (dialog.ShowDialog() == true)
+        {
+            var baris = DaftarRiwayatTransaksi.Select(r => new BarisEksporRiwayat(r.Id, r.Tanggal, r.NamaNasabah, r.Jenis, r.Rincian, r.Nominal));
+            File.WriteAllBytes(dialog.FileName, DokumenRiwayatTransaksi.BuatCsv(baris));
+            MessageBox.Show($"Riwayat transaksi ({DaftarRiwayatTransaksi.Count} baris) berhasil diekspor ke:\n{dialog.FileName}", "Ekspor CSV Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+    private void EksporRiwayatPdf()
+    {
+        if (DaftarRiwayatTransaksi.Count == 0)
+        {
+            MessageBox.Show("Tidak ada data riwayat transaksi untuk diekspor.", "Informasi", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Title = "Ekspor Riwayat Transaksi (PDF)",
+            Filter = "PDF Document|*.pdf",
+            FileName = $"Riwayat_Transaksi_TRASHURY_{DateTime.Now:yyyyMMdd}.pdf"
+        };
+        if (dialog.ShowDialog() == true)
+        {
+            var baris = DaftarRiwayatTransaksi.Select(r => new BarisEksporRiwayat(r.Id, r.Tanggal, r.NamaNasabah, r.Jenis, r.Rincian, r.Nominal)).ToList();
+            string rentang = TanggalDariRiwayat.HasValue || TanggalSampaiRiwayat.HasValue
+                ? $"{TanggalDariRiwayat?.ToString("dd/MM/yyyy") ?? "..."} s/d {TanggalSampaiRiwayat?.ToString("dd/MM/yyyy") ?? "..."}"
+                : "Semua Periode";
+            string filterDesc = $"{FilterJenisRiwayat} | {rentang}";
+            File.WriteAllBytes(dialog.FileName, DokumenRiwayatTransaksi.BuatPdf(baris, filterDesc));
+            MessageBox.Show($"Riwayat transaksi ({DaftarRiwayatTransaksi.Count} baris) berhasil diekspor ke:\n{dialog.FileName}", "Ekspor PDF Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 
@@ -753,22 +846,25 @@ public class MainViewModel : INotifyPropertyChanged
             bitmap.Freeze();
             PreviewGambarAi = bitmap;
 
-            HasilPrediksiAi = "Menganalisis foto (Otomatis Cloud SigLIP / ONNX offline)...";
+            HasilPrediksiAi = "Menganalisis foto...";
+            SumberModelAi = string.Empty;
+            DaftarKandidatAi.Clear();
+            DaftarPeringatanAi.Clear();
+            OnPropertyChanged(nameof(AdaKandidatAi));
+            OnPropertyChanged(nameof(AdaPeringatanAi));
 
             var hasil = await Task.Run(() => _klasifikasiSampah.Klasifikasi(bytes));
-            var barisInfo = new List<string>
-            {
-                $"Prediksi AI: {hasil.KategoriTerdeteksi} (Confidence: {hasil.Confidence:P1})",
-                $"Model: {hasil.SumberModel}"
-            };
+            HasilPrediksiAi = $"{hasil.KategoriTerdeteksi} ({hasil.Confidence:P1})";
+            SumberModelAi = hasil.SumberModel;
 
-            if (hasil.KandidatTeratas.Count > 1)
-                barisInfo.Add("Top-3: " + string.Join(" | ", hasil.KandidatTeratas));
+            foreach (string kandidat in hasil.KandidatTeratas)
+                DaftarKandidatAi.Add(kandidat);
 
             foreach (string p in hasil.Peringatan)
-                barisInfo.Add($"⚠️ {p}");
+                DaftarPeringatanAi.Add(p);
 
-            HasilPrediksiAi = string.Join("\n", barisInfo);
+            OnPropertyChanged(nameof(AdaKandidatAi));
+            OnPropertyChanged(nameof(AdaPeringatanAi));
 
             var cocok = DaftarKategori.FirstOrDefault(k =>
                 k.Nama.Contains(hasil.KategoriTerdeteksi, StringComparison.OrdinalIgnoreCase) ||
@@ -879,20 +975,26 @@ public class MainViewModel : INotifyPropertyChanged
 
     private void MuatBukuTabungan()
     {
+        DaftarBarisBukuTabungan.Clear();
+
         if (NasabahTarikTerpilih == null)
         {
             RingkasanBukuTabungan = "Pilih nasabah untuk melihat buku tabungan.";
+            TotalMasukBukuTabungan = "Rp 0";
+            TotalKeluarBukuTabungan = "Rp 0";
+            SaldoAkhirBukuTabungan = "Rp 0";
             return;
         }
         try
         {
             var buku = _layananBukuTabungan.Susun(NasabahTarikTerpilih.Id);
-            var barisTeks = buku.Baris.Select(b =>
-                $"{b.Tanggal:dd/MM/yyyy} | {b.Keterangan,-25} | Masuk: Rp {b.Kredit,8:N0} | Keluar: Rp {b.Debit,8:N0} | Saldo: Rp {b.Saldo,9:N0}");
-            RingkasanBukuTabungan = $"Nasabah: {buku.NamaNasabah} (ID: {buku.NasabahId})\n" +
-                                    $"Total Masuk: Rp {buku.TotalKredit:N0} | Total Keluar: Rp {buku.TotalDebit:N0} | Saldo Akhir: Rp {buku.SaldoAkhir:N0}\n" +
-                                    new string('-', 85) + "\n" +
-                                    (buku.Baris.Count == 0 ? "Belum ada riwayat transaksi." : string.Join("\n", barisTeks));
+            TotalMasukBukuTabungan = $"Rp {buku.TotalKredit:N0}";
+            TotalKeluarBukuTabungan = $"Rp {buku.TotalDebit:N0}";
+            SaldoAkhirBukuTabungan = $"Rp {buku.SaldoAkhir:N0}";
+            RingkasanBukuTabungan = $"Buku Tabungan — {buku.NamaNasabah}";
+
+            foreach (var b in buku.Baris)
+                DaftarBarisBukuTabungan.Add(b);
         }
         catch (Exception ex)
         {

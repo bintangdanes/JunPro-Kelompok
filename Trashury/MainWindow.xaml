@@ -23,10 +23,7 @@
                     <Border CornerRadius="8" ClipToBounds="True" Width="38" Height="38" Margin="0,0,12,0" BorderBrush="#4CAF50" BorderThickness="1">
                         <Image Source="pack://application:,,,/Assets/trashury-icon.png" Stretch="UniformToFill"/>
                     </Border>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="TRASHURY" FontSize="21" FontWeight="Bold" Foreground="White"/>
-                        <TextBlock Text="Ubah sampah jadi harta, kelola bank sampah lebih rapi (Hybrid Cloud-Edge)" FontSize="12" Foreground="#C8E6C9"/>
-                    </StackPanel>
+                    <TextBlock Text="TRASHURY" FontSize="22" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
@@ -36,10 +33,10 @@
                             <TextBlock Text="{Binding NamaPeranAktif}" Foreground="White" FontWeight="SemiBold" FontSize="12.5" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
-                    <Button Command="{Binding LogoutCommand}" Padding="14,7" Background="#FFFFFF" Foreground="#1B5E20" FontWeight="SemiBold">
+                    <Button Command="{Binding LogoutCommand}" Padding="14,7" Background="#C62828" Foreground="White" FontWeight="SemiBold">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE7E8;" FontSize="13" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <TextBlock Text="Logout / Ganti Akun" VerticalAlignment="Center"/>
+                            <TextBlock Text="Logout" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -206,19 +203,25 @@
                                 <StackPanel>
                                     <TextBlock Text="Input Setoran Baru" FontSize="16.5" FontWeight="Bold" Foreground="#1B5E20" Margin="0,0,0,14"/>
 
-                                    <TextBlock Text="Pilih Nasabah" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,0,5"/>
-                                    <ComboBox ItemsSource="{Binding DaftarNasabah}" SelectedItem="{Binding NasabahSetoranTerpilih}"
-                                              DisplayMemberPath="Nama" Margin="0,0,0,14"/>
+                                    <TextBlock Text="Nama Nasabah" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,0,5"/>
+                                    <ComboBox ItemsSource="{Binding DaftarNasabah}"
+                                              SelectedItem="{Binding NasabahSetoranTerpilih}"
+                                              DisplayMemberPath="Nama"
+                                              IsEditable="True"
+                                              IsTextSearchEnabled="True"
+                                              StaysOpenOnEdit="True"
+                                              TextSearch.TextPath="Nama"
+                                              ToolTip="Ketik untuk mencari nama nasabah"
+                                              Margin="0,0,0,14"/>
 
-                                    <!-- Panel Klasifikasi AI Otomatis -->
+                                    <!-- Panel Klasifikasi AI -->
                                     <Border Background="#EDF7EE" BorderBrush="#C8E6C9" BorderThickness="1" Padding="13" CornerRadius="10" Margin="0,0,0,14">
                                         <StackPanel>
-                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                                                 <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE99A;" FontSize="14" Foreground="#1B5E20" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                                 <TextBlock Text="Klasifikasi Foto Sampah (AI)" FontWeight="Bold" Foreground="#1B5E20" FontSize="13.5"/>
                                             </StackPanel>
-                                            <TextBlock Text="Otomatis Cloud SigLIP (online) • ONNX lokal (offline)" FontSize="11.5" Foreground="#388E3C" Margin="0,0,0,10"/>
-                                            <Grid Margin="0,0,0,8">
+                                            <Grid Margin="0,0,0,10">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="*"/>
@@ -236,8 +239,49 @@
                                                     </StackPanel>
                                                 </Button>
                                             </Grid>
-                                            <Image Source="{Binding PreviewGambarAi}" MaxHeight="140" Stretch="Uniform" Margin="0,0,0,6"/>
-                                            <TextBlock Text="{Binding HasilPrediksiAi}" TextWrapping="Wrap" FontSize="12" Foreground="#1B5E20" LineHeight="17"/>
+
+                                            <Image Source="{Binding PreviewGambarAi}" MaxHeight="135" Stretch="Uniform" Margin="0,0,0,8"/>
+
+                                            <!-- Ringkasan Prediksi AI Rapi -->
+                                            <Border Background="White" BorderBrush="#C8E6C9" BorderThickness="1" CornerRadius="8" Padding="10">
+                                                <StackPanel>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{Binding HasilPrediksiAi}" FontWeight="Bold" FontSize="13" Foreground="#1B5E20" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                                        <Border Grid.Column="1" Background="#E8F5E9" CornerRadius="10" Padding="7,2" Margin="6,0,0,0"
+                                                                Visibility="{Binding AdaSumberModelAi, Converter={StaticResource BoolToVis}}">
+                                                            <TextBlock Text="{Binding SumberModelAi}" FontSize="10.5" FontWeight="SemiBold" Foreground="#2E7D32"/>
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <!-- Daftar Top-3 Kandidat -->
+                                                    <StackPanel Margin="0,8,0,0" Visibility="{Binding AdaKandidatAi, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="Top-3 Kandidat:" FontSize="11" FontWeight="SemiBold" Foreground="#546E7A" Margin="0,0,0,4"/>
+                                                        <ItemsControl ItemsSource="{Binding DaftarKandidatAi}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBlock Text="{Binding}" FontSize="11.5" Foreground="#263238" Margin="4,1,0,1" TextWrapping="Wrap"/>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </StackPanel>
+
+                                                    <!-- Peringatan Bahaya / Kontaminasi -->
+                                                    <Border Background="#FFF3E0" BorderBrush="#FFCC80" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,8,0,0"
+                                                            Visibility="{Binding AdaPeringatanAi, Converter={StaticResource BoolToVis}}">
+                                                        <ItemsControl ItemsSource="{Binding DaftarPeringatanAi}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBlock Text="{Binding StringFormat='⚠ {0}'}" FontSize="11.5" Foreground="#E65100" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,1"/>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </Border>
+                                                </StackPanel>
+                                            </Border>
                                         </StackPanel>
                                     </Border>
 
@@ -320,9 +364,16 @@
                             <StackPanel>
                                 <TextBlock Text="Penarikan Tabungan Nasabah" FontSize="16.5" FontWeight="Bold" Foreground="#1B5E20" Margin="0,0,0,14"/>
 
-                                <TextBlock Text="Pilih Nasabah" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,0,5"/>
-                                <ComboBox ItemsSource="{Binding DaftarNasabah}" SelectedItem="{Binding NasabahTarikTerpilih}"
-                                          DisplayMemberPath="Nama" Margin="0,0,0,12"/>
+                                <TextBlock Text="Nama Nasabah" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,0,5"/>
+                                <ComboBox ItemsSource="{Binding DaftarNasabah}"
+                                          SelectedItem="{Binding NasabahTarikTerpilih}"
+                                          DisplayMemberPath="Nama"
+                                          IsEditable="True"
+                                          IsTextSearchEnabled="True"
+                                          StaysOpenOnEdit="True"
+                                          TextSearch.TextPath="Nama"
+                                          ToolTip="Ketik untuk mencari nama nasabah"
+                                          Margin="0,0,0,12"/>
 
                                 <Border Background="#E8F5E9" BorderBrush="#C8E6C9" BorderThickness="1" CornerRadius="8" Padding="14,11" Margin="0,0,0,14">
                                     <TextBlock Text="{Binding NasabahTarikTerpilih.Saldo, StringFormat='Saldo Tersedia: Rp {0:N0}'}"
@@ -344,16 +395,52 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="1" Background="#1D272B" CornerRadius="10" Padding="18">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                <TextBlock Text="{Binding RingkasanBukuTabungan}" FontFamily="Cascadia Mono, Consolas" FontSize="13" Foreground="#ECEFF1" LineHeight="20"/>
-                            </ScrollViewer>
-                        </Border>
+                        <!-- Panel Kanan: Ringkasan + Tabel Buku Tabungan Rapi -->
+                        <Grid Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="{Binding RingkasanBukuTabungan}" FontSize="16" FontWeight="Bold" Foreground="#1B5E20" Margin="0,0,0,10"/>
+
+                            <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,12">
+                                <Border Background="#E8F5E9" BorderBrush="#C8E6C9" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,6,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Total Masuk" FontSize="11.5" FontWeight="SemiBold" Foreground="#2E7D32"/>
+                                        <TextBlock Text="{Binding TotalMasukBukuTabungan}" FontSize="17" FontWeight="Bold" Foreground="#1B5E20" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="#FCE4EC" BorderBrush="#F8BBD0" BorderThickness="1" CornerRadius="8" Padding="12" Margin="3,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Total Keluar" FontSize="11.5" FontWeight="SemiBold" Foreground="#AD1457"/>
+                                        <TextBlock Text="{Binding TotalKeluarBukuTabungan}" FontSize="17" FontWeight="Bold" Foreground="#880E4F" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="#E3F2FD" BorderBrush="#BBDEFB" BorderThickness="1" CornerRadius="8" Padding="12" Margin="6,0,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Saldo Akhir" FontSize="11.5" FontWeight="SemiBold" Foreground="#1565C0"/>
+                                        <TextBlock Text="{Binding SaldoAkhirBukuTabungan}" FontSize="17" FontWeight="Bold" Foreground="#0D47A1" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+
+                            <DataGrid Grid.Row="2" ItemsSource="{Binding DaftarBarisBukuTabungan}" AutoGenerateColumns="False" IsReadOnly="True">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Tanggal" Binding="{Binding Tanggal, StringFormat=dd/MM/yyyy}" Width="105"/>
+                                    <DataGridTextColumn Header="Keterangan" Binding="{Binding Keterangan}" Width="*"/>
+                                    <DataGridTextColumn Header="Masuk (Rp)" Binding="{Binding Kredit, StringFormat=N0}" Width="115"/>
+                                    <DataGridTextColumn Header="Keluar (Rp)" Binding="{Binding Debit, StringFormat=N0}" Width="115"/>
+                                    <DataGridTextColumn Header="Saldo (Rp)" Binding="{Binding Saldo, StringFormat=N0}" Width="120"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
                     </Grid>
                 </Border>
             </TabItem>
 
-            <!-- TAB 4: RIWAYAT TRANSAKSI GLOBAL & PEMBATALAN -->
+            <!-- TAB 4: RIWAYAT TRANSAKSI GLOBAL, FILTER TANGGAL & EKSPOR -->
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -364,18 +451,55 @@
 
                 <Border Background="White" BorderBrush="#DCE5DF" BorderThickness="1" CornerRadius="10" Padding="20" Effect="{StaticResource CardShadow}">
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,14">
-                            <TextBlock Text="Filter Jenis:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="13" Foreground="#37474F" Margin="0,0,6,0"/>
-                            <ComboBox ItemsSource="{Binding PilihanFilterJenis}" SelectedItem="{Binding FilterJenisRiwayat}" Width="135" Margin="0,0,16,0"/>
-                            <TextBlock Text="Cari (Nasabah / ID):" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="13" Foreground="#37474F" Margin="0,0,6,0"/>
-                            <TextBox Text="{Binding KataKunciRiwayat, UpdateSourceTrigger=PropertyChanged}" Width="270"/>
+                        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
+                            <!-- Baris 1: Rentang Cepat, DatePicker Dari-Sampai, Ekspor CSV/PDF -->
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Content="7 Hari" Command="{Binding FilterRiwayat7HariCommand}" Padding="10,6" Margin="0,0,6,0" Background="#E8F5E9" Foreground="#1B5E20" FontWeight="SemiBold"/>
+                                    <Button Content="30 Hari" Command="{Binding FilterRiwayat30HariCommand}" Padding="10,6" Margin="0,0,6,0" Background="#E8F5E9" Foreground="#1B5E20" FontWeight="SemiBold"/>
+                                    <Button Content="Semua" Command="{Binding FilterRiwayatSemuaCommand}" Padding="10,6" Margin="0,0,14,0" Background="#1B5E20" Foreground="White" FontWeight="SemiBold"/>
+
+                                    <TextBlock Text="Dari:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,6,0"/>
+                                    <DatePicker SelectedDate="{Binding TanggalDariRiwayat}" Width="125" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBlock Text="Sampai:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,6,0"/>
+                                    <DatePicker SelectedDate="{Binding TanggalSampaiRiwayat}" Width="125" VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button Command="{Binding EksporRiwayatCsvCommand}" Background="#0277BD" Foreground="White" FontWeight="SemiBold" Margin="0,0,8,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8A5;" FontSize="13" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Ekspor CSV" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding EksporRiwayatPdfCommand}" Background="#C62828" Foreground="White" FontWeight="SemiBold">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE749;" FontSize="13" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Ekspor PDF" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Baris 2: Filter Jenis & Pencarian Nama Nasabah -->
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Filter Jenis:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,6,0"/>
+                                <ComboBox ItemsSource="{Binding PilihanFilterJenis}" SelectedItem="{Binding FilterJenisRiwayat}" Width="135" Margin="0,0,16,0"/>
+                                <TextBlock Text="Cari Nasabah:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,6,0"/>
+                                <TextBox Text="{Binding KataKunciRiwayat, UpdateSourceTrigger=PropertyChanged}" Width="280" ToolTip="Ketik nama nasabah"/>
+                            </StackPanel>
                         </StackPanel>
 
                         <DataGrid ItemsSource="{Binding DaftarRiwayatTransaksi}" AutoGenerateColumns="False" IsReadOnly="True">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="55"/>
                                 <DataGridTextColumn Header="Tanggal" Binding="{Binding Tanggal, StringFormat=dd/MM/yyyy HH:mm}" Width="135"/>
-                                <DataGridTextColumn Header="Nasabah" Binding="{Binding NamaNasabah}" Width="160"/>
+                                <DataGridTextColumn Header="Nama Nasabah" Binding="{Binding NamaNasabah}" Width="165"/>
                                 <DataGridTextColumn Header="Jenis" Binding="{Binding Jenis}" Width="90"/>
                                 <DataGridTextColumn Header="Rincian" Binding="{Binding Rincian}" Width="*"/>
                                 <DataGridTextColumn Header="Nominal (Rp)" Binding="{Binding Nominal, StringFormat=N0}" Width="115"/>
@@ -457,8 +581,8 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Cari (Nama / ID):" VerticalAlignment="Center" FontSize="12.5" Foreground="#546E7A" Margin="0,0,8,0"/>
-                                        <TextBox Grid.Column="1" Text="{Binding KataKunciCariNasabah, UpdateSourceTrigger=PropertyChanged}" ToolTip="Ketik nama atau ID nasabah untuk memfilter tabel"/>
+                                        <TextBlock Grid.Column="0" Text="Cari Nasabah:" VerticalAlignment="Center" FontSize="12.5" Foreground="#546E7A" Margin="0,0,8,0"/>
+                                        <TextBox Grid.Column="1" Text="{Binding KataKunciCariNasabah, UpdateSourceTrigger=PropertyChanged}" ToolTip="Ketik nama nasabah untuk memfilter tabel"/>
                                     </Grid>
                                 </StackPanel>
 
