@@ -426,15 +426,15 @@ Per commit terakhir, berikut kondisi nyata kode di repo ini:
 | `NasabahRepository`, `TransaksiRepository`, `KategoriSampahRepository` | ✅ Selesai | Menulis ke SQLite; `SimpanPerubahan()` memanggil `SaveChanges()` |
 | `KalkulatorCO2e` | ✅ Selesai | Menjumlahkan CO2e seluruh baris setoran |
 | `LayananTransaksi` | ✅ Selesai | `CatatSetoran()` dan `ProsesPenarikan()` tersimpan permanen |
-| `Trashury.Tests` | ✅ Selesai | 34 test lulus, termasuk uji persistensi lintas sesi, laporan bulanan, dan buku tabungan |
+| `Trashury.Tests` | ✅ Selesai | 40 test lulus (persistensi SQLite, transaksi & pembatalan, laporan bulanan, buku tabungan, AI ONNX/Hybrid, autentikasi RBAC) |
 | `Trashury.DbTool` | ✅ Selesai | Perkakas migrate / seed / info untuk demo dan pemeriksaan |
 | `LayananLaporan.LaporanBulanan()` | ✅ Selesai | Mengembalikan DTO `RekapBulanan` (total setoran, penarikan, berat, CO2e) beserta rincian `RekapKategori` |
 | `LayananLaporan.EksporCsv()` | ✅ Selesai | Rincian per kategori + baris TOTAL; bawaan format Excel Indonesia (`;` dan koma desimal), opsi `FormatCsv.Standar` (RFC 4180) |
 | `LayananLaporan.EksporPdf()` | ✅ Selesai | Laporan A4 (ringkasan + rincian per kategori) via QuestPDF, lisensi Community |
 | `LayananBukuTabungan` | ✅ Selesai | Riwayat transaksi per nasabah dengan saldo berjalan, plus cetak PDF |
 | Endpoint Web API (`Trashury.Api`) | ✅ Selesai | 13 endpoint REST (kategori, nasabah, transaksi, dampak, laporan CSV/PDF, buku tabungan PDF, klasifikasi AI) + Swagger UI |
-| `KlasifikasiOnnx` | ✅ Selesai | Inferensi `klasifikasi-sampah-v3.onnx` (EfficientNet-B2) secara offline + Top-3 kandidat & peringatan bahaya/kontaminasi |
-| `Trashury` (WPF MVVM) | ✅ Selesai | `App.xaml`, `MainWindow.xaml`, `KameraWindow.xaml`, `MainViewModel.cs` (4 tab lengkap + live webcam preview + cetak bukti setoran PDF) |
+| `KlasifikasiOnnx` & `KlasifikasiHybrid` | ✅ Selesai | Hybrid Cloud-Edge AI: Cloud SigLIP-SO400M (Hugging Face Spaces) + otomatis *fallback* offline ke `klasifikasi-sampah-v3.onnx` (EfficientNet-B2) + Top-3 kandidat & peringatan |
+| `Trashury` (WPF MVVM) | ✅ Selesai | `LoginWindow.xaml` (RBAC), `MainWindow.xaml` (5 tab: Dashboard + Grafik CO2e, Setoran + AI, Penarikan + Buku Tabungan, Riwayat + Batal, Master Data + Backup/Restore DB), `KameraWindow.xaml` |
 
 ---
 
@@ -472,13 +472,15 @@ dotnet run --project Trashury.Api
 dotnet publish Trashury/Trashury.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish/SingleFile
 ```
 
-> **Status saat ini.** Seluruh proyek dalam solusi (`Trashury.Core`, `Trashury`, `Trashury.Api`, `Trashury.DbTool`, dan `Trashury.Tests`) sudah selesai dan lulus 34 pengujian otomatis.
+> **Status saat ini.** Seluruh proyek dalam solusi (`Trashury.Core`, `Trashury`, `Trashury.Api`, `Trashury.DbTool`, dan `Trashury.Tests`) sudah selesai dan lulus 40 pengujian otomatis.
 
 ### Informasi Akses Demo
 
 - **Repository:** https://github.com/bintangdanes/JunPro-Kelompok
 - **Halaman dokumentasi (GitHub Pages):** https://bintangdanes.github.io/JunPro-Kelompok/
-- **Akun demo:** aplikasi berjalan sepenuhnya lokal (*offline-first*) dan belum menggunakan autentikasi, sehingga tidak ada kredensial yang perlu dibagikan.
+- **Akun login bawaan (RBAC, PBKDF2-SHA256):**
+  - **Pengurus (akses penuh):** username `pengurus`, password `pengurus123`
+  - **Operator (meja setoran):** username `operator`, password `operator123`
 - **Data awal:** lima kategori sampah ter-*seed* otomatis saat basis data pertama kali dibuat.
 - **Data contoh demo:** jalankan `dotnet run --project Trashury.DbTool -- seed --fresh` untuk mengisi 3 nasabah dan 4 transaksi, lalu `-- info` untuk menampilkan isinya.
 

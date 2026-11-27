@@ -113,8 +113,8 @@ ERD, struktur kolom tiap tabel, keputusan perancangan, dan bukti isi basis data 
 
 ## Status & Akses
 
-Seluruh komponen aplikasi — antarmuka desktop WPF MVVM (`Trashury`), logika bisnis & penyimpanan SQLite (`Trashury.Core`), ekspor laporan CSV/PDF, buku tabungan PDF, bukti setoran PDF, klasifikasi AI ONNX (`klasifikasi-sampah-v3.onnx`) beserta pratinjau kamera langsung, dan layanan Web API (`Trashury.Api`) — sudah selesai dan diuji oleh **34 pengujian otomatis**.
+Seluruh komponen aplikasi — antarmuka desktop WPF MVVM dengan Login RBAC (`Trashury`), logika bisnis & penyimpanan SQLite (`Trashury.Core`), ekspor laporan CSV/PDF, buku tabungan PDF, bukti setoran PDF, Hybrid Cloud-Edge AI (`SigLIP-SO400M` + *fallback* offline `klasifikasi-sampah-v3.onnx`) beserta pratinjau kamera langsung, dan layanan Web API (`Trashury.Api`) — sudah selesai dan diuji oleh **40 pengujian otomatis**.
 
 - **Repository:** <https://github.com/bintangdanes/JunPro-Kelompok>
 - **Cara menjalankan:** [Petunjuk build & run »](https://github.com/bintangdanes/JunPro-Kelompok#menjalankan-proyek)
-- **Akun demo:** tidak diperlukan — aplikasi berjalan sepenuhnya lokal (*offline-first*) dan belum menggunakan autentikasi.
+- **Akun login bawaan (RBAC):** Pengurus (`pengurus` / `pengurus123`) dan Operator (`operator` / `operator123`).
