@@ -53,9 +53,13 @@ dotnet run --project Trashury.DbTool -- info
 
 ---
 
-## 3. Cara Menggunakan Aplikasi (Alur Operator)
+## 3. Cara Menggunakan Aplikasi (Login RBAC & Alur Operator)
 
-1. **Kelola Master Data (Nasabah & Kategori Sampah)**
+Saat aplikasi dibuka, masuk menggunakan akun bawaan (password disimpan ter-hash PBKDF2-SHA256 di SQLite):
+- **Pengurus (akses penuh):** `pengurus` / `pengurus123`
+- **Operator (meja setoran):** `operator` / `operator123`
+
+1. **Kelola Master Data & Backup/Restore DB (Khusus Pengurus)**
    - Tambah, ubah, hapus, atau reset data nasabah dan kategori sampah (harga per kg dan faktor reduksi emisi CO2e), serta gunakan kotak **Cari (Nama / ID)** untuk memfilter daftar nasabah secara langsung.
 2. **Catat Setoran Sampah (+ Klasifikasi AI & Kamera Opsional)**
    - Pilih nasabah yang menyetor sampah.

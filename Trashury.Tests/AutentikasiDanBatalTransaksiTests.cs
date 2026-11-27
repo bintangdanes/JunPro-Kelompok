@@ -42,6 +42,18 @@ public class AutentikasiDanBatalTransaksiTests
         Assert.NotEqual("rahasia123", baru.PasswordHash);
         Assert.NotNull(auth.Login("siti", "rahasia123"));
         Assert.Null(auth.Login("siti", "bukanrahasia"));
+
+        // Ubah nama & reset password
+        auth.UbahPengguna(baru.Id, "Siti Senior", Pengguna.PeranOperator, "baru12345");
+        Assert.Null(auth.Login("siti", "rahasia123"));
+        var loginBaru = auth.Login("siti", "baru12345");
+        Assert.NotNull(loginBaru);
+        Assert.Equal("Siti Senior", loginBaru.NamaLengkap);
+
+        // Tidak boleh hapus diri sendiri; boleh hapus oleh akun lain
+        Assert.Throws<InvalidOperationException>(() => auth.HapusPengguna(baru.Id, idPenggunaAktif: baru.Id));
+        auth.HapusPengguna(baru.Id);
+        Assert.Null(auth.Login("siti", "baru12345"));
     }
 
     [Fact]
