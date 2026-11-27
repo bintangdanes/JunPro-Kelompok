@@ -16,7 +16,7 @@ Aplikasi kasir dan manajemen data lokal berbasis desktop untuk memodernisasi ope
 
 | Nama | NIM | Peran |
 |---|---|---|
-| Muhammad Afiq Mirza Choiruzan | 24/537942/TK/59646 | Software Architect & AI Engineer (model klasifikasi sampah ONNX dan Merancang arsitektur modular solusi beserta kontrak antar-komponen.) |
+| Muhammad Afiq Mirza Choiruzan | 24/537942/TK/59646 | Software Architect & AIE (model AI klasifikasi sampah dan Merancang arsitektur modular solusi beserta kontrak antar-komponen.) |
 | Wangsit Nursyahada | 24/545092/TK/60594 | Backend Developer (`Models/`, `Interfaces/`, `Repositories/`, `Services/`) |
 | Bintang Daneswara | 24/541599/TK/60084 | Frontend Developer (`Views/`, `ViewModels/`) |
 
