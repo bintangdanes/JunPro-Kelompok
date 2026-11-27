@@ -188,19 +188,6 @@ public class MainViewModel : INotifyPropertyChanged
     private string _hasilPrediksiAi = "Belum ada foto sampah diklasifikasi.";
     public string HasilPrediksiAi { get => _hasilPrediksiAi; set { _hasilPrediksiAi = value; OnPropertyChanged(); } }
 
-    private bool _gunakanCloudAi = true;
-    public bool GunakanCloudAi
-    {
-        get => _gunakanCloudAi;
-        set
-        {
-            _gunakanCloudAi = value;
-            if (_klasifikasiHybrid != null)
-                _klasifikasiHybrid.GunakanCloud = value;
-            OnPropertyChanged();
-        }
-    }
-
     private ImageSource? _previewGambarAi;
     public ImageSource? PreviewGambarAi { get => _previewGambarAi; set { _previewGambarAi = value; OnPropertyChanged(); } }
 
@@ -766,9 +753,7 @@ public class MainViewModel : INotifyPropertyChanged
             bitmap.Freeze();
             PreviewGambarAi = bitmap;
 
-            HasilPrediksiAi = GunakanCloudAi
-                ? "Menganalisis foto (Cloud SigLIP / fallback Edge ONNX)..."
-                : "Menganalisis foto secara offline (Edge ONNX)...";
+            HasilPrediksiAi = "Menganalisis foto (Otomatis Cloud SigLIP / ONNX offline)...";
 
             var hasil = await Task.Run(() => _klasifikasiSampah.Klasifikasi(bytes));
             var barisInfo = new List<string>

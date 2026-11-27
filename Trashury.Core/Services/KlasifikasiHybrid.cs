@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using Trashury.Interfaces;
 using Trashury.Models;
 
@@ -32,7 +33,7 @@ public sealed class KlasifikasiHybrid : IKlasifikasiSampah, IDisposable
         if (gambar.Length == 0)
             throw new ArgumentException("Data gambar tidak boleh kosong.", nameof(gambar));
 
-        if (GunakanCloud)
+        if (GunakanCloud && NetworkInterface.GetIsNetworkAvailable())
         {
             try
             {
@@ -47,7 +48,9 @@ public sealed class KlasifikasiHybrid : IKlasifikasiSampah, IDisposable
         }
 
         HasilKlasifikasi hasilEdge = _edge.Klasifikasi(gambar);
-        hasilEdge.SumberModel = "Edge ONNX (EfficientNet-B2)";
+        hasilEdge.SumberModel = GunakanCloud
+            ? "Edge ONNX (Offline)"
+            : "Edge ONNX (EfficientNet-B2)";
         return hasilEdge;
     }
 
