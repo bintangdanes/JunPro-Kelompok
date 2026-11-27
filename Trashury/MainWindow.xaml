@@ -667,9 +667,9 @@
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBox Grid.Column="0" Text="{Binding NamaKategoriBaru}" Margin="0,0,4,0" ToolTip="Nama Kategori"/>
-                                        <TextBox Grid.Column="1" Text="{Binding HargaKategoriBaru}" Margin="0,0,4,0" ToolTip="Harga/kg"/>
-                                        <TextBox Grid.Column="2" Text="{Binding EmisiKategoriBaru}" Margin="0,0,6,0" ToolTip="Faktor Emisi CO2e"/>
+                                        <TextBox Grid.Column="0" Text="{Binding NamaKategoriBaru}" Padding="8,8" Margin="0,0,4,0" ToolTip="Nama Kategori"/>
+                                        <TextBox Grid.Column="1" Text="{Binding HargaKategoriBaru}" Padding="6,8" MinWidth="62" Margin="0,0,4,0" ToolTip="Harga/kg"/>
+                                        <TextBox Grid.Column="2" Text="{Binding EmisiKategoriBaru}" Padding="6,8" MinWidth="48" Margin="0,0,6,0" ToolTip="Faktor Emisi CO2e"/>
                                         <StackPanel Grid.Column="3" Orientation="Horizontal">
                                             <Button Content="+" Command="{Binding TambahKategoriCommand}" Padding="10,6" Background="#2E7D32" Foreground="White" ToolTip="Tambah Kategori" Margin="0,0,3,0"/>
                                             <Button Content="Ubah" Command="{Binding UbahKategoriCommand}" Padding="9,6" Background="#0277BD" Foreground="White" Margin="0,0,3,0"/>

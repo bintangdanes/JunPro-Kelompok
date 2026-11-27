@@ -172,7 +172,29 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Border Grid.Column="0" Background="White" BorderBrush="#DCE5DF" BorderThickness="0,0,1,0" Padding="12,16">
-                                <StackPanel IsItemsHost="True"/>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Grid.Row="0" IsItemsHost="True"/>
+                                    <Border Grid.Row="1" Background="#F4FAF5" BorderBrush="#DCECE0" BorderThickness="1" CornerRadius="12" Padding="12,14" Margin="2,12,2,0">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <Image Source="pack://application:,,,/Assets/dashboard-eco-banner.png"
+                                                   Height="96"
+                                                   Stretch="Uniform"
+                                                   HorizontalAlignment="Center"
+                                                   Margin="0,0,0,8"/>
+                                            <TextBlock Text="Setiap kilo sampah berarti untuk bumi."
+                                                       FontSize="11.5"
+                                                       Foreground="#3E5C45"
+                                                       FontWeight="SemiBold"
+                                                       TextWrapping="Wrap"
+                                                       TextAlignment="Center"
+                                                       LineHeight="16"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
                             </Border>
                             <ContentPresenter Grid.Column="1" x:Name="PART_SelectedContentHost"
                                               ContentSource="SelectedContent"
