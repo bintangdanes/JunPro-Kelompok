@@ -43,18 +43,18 @@
             </Grid>
         </Border>
 
-        <!-- Konten Tab -->
-        <TabControl Margin="16,12,16,16">
+        <!-- Konten Sidebar + Panel Utama -->
+        <TabControl TabStripPlacement="Left" Margin="0">
             <!-- TAB 1: DASHBOARD DAMPAK IKLIM & LAPORAN BULANAN -->
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE9D9;" FontSize="14" VerticalAlignment="Center" Margin="0,0,7,0"/>
-                        <TextBlock Text="Dashboard Iklim &amp; Laporan DLH" VerticalAlignment="Center"/>
+                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE9D9;" FontSize="15" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="Dashboard &amp; Laporan" VerticalAlignment="Center"/>
                     </StackPanel>
                 </TabItem.Header>
 
-                <Border Background="White" BorderBrush="#DCE5DF" BorderThickness="1" CornerRadius="0,10,10,10" Padding="20" Effect="{StaticResource CardShadow}">
+                <Border Background="White" BorderBrush="#DCE5DF" BorderThickness="1" CornerRadius="10" Padding="20" Effect="{StaticResource CardShadow}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -189,8 +189,8 @@
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE7BF;" FontSize="14" VerticalAlignment="Center" Margin="0,0,7,0"/>
-                        <TextBlock Text="Transaksi Setoran Sampah" VerticalAlignment="Center"/>
+                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE7BF;" FontSize="15" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="Setoran Sampah" VerticalAlignment="Center"/>
                     </StackPanel>
                 </TabItem.Header>
 
@@ -357,8 +357,8 @@
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8C7;" FontSize="14" VerticalAlignment="Center" Margin="0,0,7,0"/>
-                        <TextBlock Text="Penarikan Saldo &amp; Buku Tabungan" VerticalAlignment="Center"/>
+                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8C7;" FontSize="15" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="Penarikan &amp; Tabungan" VerticalAlignment="Center"/>
                     </StackPanel>
                 </TabItem.Header>
 
@@ -453,7 +453,7 @@
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE81C;" FontSize="14" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE81C;" FontSize="15" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <TextBlock Text="Riwayat Transaksi" VerticalAlignment="Center"/>
                     </StackPanel>
                 </TabItem.Header>
@@ -542,8 +542,8 @@
             <TabItem Visibility="{Binding IsPengurus, Converter={StaticResource BoolToVis}}">
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE713;" FontSize="14" VerticalAlignment="Center" Margin="0,0,7,0"/>
-                        <TextBlock Text="Master Data (Pengurus)" VerticalAlignment="Center"/>
+                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE713;" FontSize="15" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="Master Data" VerticalAlignment="Center"/>
                     </StackPanel>
                 </TabItem.Header>
 
@@ -648,7 +648,7 @@
             <TabItem Visibility="{Binding IsPengurus, Converter={StaticResource BoolToVis}}">
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE716;" FontSize="14" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE716;" FontSize="15" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <TextBlock Text="Kelola Akun" VerticalAlignment="Center"/>
                     </StackPanel>
                 </TabItem.Header>
