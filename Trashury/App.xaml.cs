@@ -1,6 +1,7 @@
 using System.Windows;
 using Microsoft.EntityFrameworkCore;
 using Trashury.Data;
+using Trashury.Services;
 
 namespace Trashury;
 
@@ -9,8 +10,23 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        // Otomatis membuat database SQLite dan menjalankan migrasi saat aplikasi dibuka
-        using var db = TrashuryDbContextFactory.Buat();
-        db.Database.Migrate();
+
+        using (var db = TrashuryDbContextFactory.Buat())
+        {
+            db.Database.Migrate();
+            new LayananAutentikasi(db).PastikanAkunBawaan();
+        }
+
+        var login = new LoginWindow();
+        if (login.ShowDialog() != true || login.PenggunaTerautentikasi == null)
+        {
+            Shutdown();
+            return;
+        }
+
+        var mainWindow = new MainWindow(login.PenggunaTerautentikasi);
+        MainWindow = mainWindow;
+        ShutdownMode = ShutdownMode.OnMainWindowClose;
+        mainWindow.Show();
     }
 }

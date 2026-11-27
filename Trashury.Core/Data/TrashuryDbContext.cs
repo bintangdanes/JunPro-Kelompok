@@ -13,6 +13,7 @@ public class TrashuryDbContext : DbContext
     public DbSet<Nasabah> Nasabah => Set<Nasabah>();
     public DbSet<Transaksi> Transaksi => Set<Transaksi>();
     public DbSet<KategoriSampah> KategoriSampah => Set<KategoriSampah>();
+    public DbSet<Pengguna> Pengguna => Set<Pengguna>();
 
     public TrashuryDbContext(DbContextOptions<TrashuryDbContext> options)
         : base(options)
@@ -77,6 +78,16 @@ public class TrashuryDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(detail => detail.KategoriId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Pengguna>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Username).IsRequired().HasMaxLength(60);
+            entity.Property(p => p.NamaLengkap).IsRequired().HasMaxLength(120);
+            entity.Property(p => p.PasswordHash).IsRequired().HasMaxLength(256);
+            entity.Property(p => p.Peran).IsRequired().HasMaxLength(30);
+            entity.HasIndex(p => p.Username).IsUnique();
         });
 
         SeedKategoriSampah(modelBuilder);
