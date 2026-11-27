@@ -30,6 +30,12 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <Border Background="#236629" CornerRadius="16" Padding="12,6" Margin="0,0,10,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE787;" FontSize="12.5" Foreground="#C8E6C9" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="{Binding TanggalHariIni}" Foreground="#E8F5E9" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
                     <Border Background="#2E7D32" CornerRadius="16" Padding="13,6" Margin="0,0,10,0">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE77B;" FontSize="13" Foreground="#C8E6C9" VerticalAlignment="Center" Margin="0,0,6,0"/>
@@ -81,25 +87,14 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,5">
-                                        <TextBlock Text="{Binding SapaanDashboard}" FontSize="17" FontWeight="Bold" Foreground="#1B5E20" VerticalAlignment="Center"/>
-                                        <Border Background="#FFFFFF" BorderBrush="#C8E6C9" BorderThickness="1" CornerRadius="10" Padding="9,2" Margin="10,0,0,0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding TanggalHariIni}" FontSize="11" Foreground="#455A64" FontWeight="SemiBold"/>
-                                        </Border>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE945;" FontSize="12.5" Foreground="#2E7D32" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                                        <TextBlock Text="{Binding EkuivalenPohonDashboard}" FontSize="12" Foreground="#2E7D32" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                    </StackPanel>
+                                    <TextBlock Text="{Binding SapaanDashboard}" FontSize="17.5" FontWeight="Bold" Foreground="#1B5E20" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Kelola sampah lebih cerdas, ciptakan dampak nyata untuk bumi." FontSize="12.5" Foreground="#455A64"/>
                                 </StackPanel>
 
-                                <Image Grid.Column="1"
-                                       Source="pack://application:,,,/Assets/dashboard-eco-banner.png"
-                                       Height="68"
-                                       Stretch="Uniform"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Right"
-                                       Margin="16,0,4,0"/>
+                                <Border Grid.Column="1" Width="56" Height="56" CornerRadius="12" ClipToBounds="True"
+                                        BorderBrush="#C8E6C9" BorderThickness="1" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="16,0,2,0">
+                                    <Image Source="pack://application:,,,/Assets/trashury-icon.png" Stretch="UniformToFill"/>
+                                </Border>
                             </Grid>
                         </Border>
 

@@ -219,16 +219,19 @@
             <Setter Property="BorderBrush" Value="#DCE5DF"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="RowBackground" Value="White"/>
-            <Setter Property="AlternatingRowBackground" Value="#F8FBF8"/>
+            <Setter Property="AlternatingRowBackground" Value="#F9FCF9"/>
             <Setter Property="GridLinesVisibility" Value="Horizontal"/>
             <Setter Property="HorizontalGridLinesBrush" Value="#EBF1EC"/>
             <Setter Property="HeadersVisibility" Value="Column"/>
-            <Setter Property="RowHeight" Value="36"/>
+            <Setter Property="RowHeight" Value="38"/>
             <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Foreground" Value="#1E2B22"/>
             <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="CanUserResizeRows" Value="False"/>
             <Setter Property="SelectionMode" Value="Single"/>
+            <Setter Property="SelectionUnit" Value="FullRow"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
         </Style>
 
         <Style TargetType="DataGridColumnHeader">
@@ -237,15 +240,44 @@
             <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
             <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="10,9"/>
-            <Setter Property="BorderBrush" Value="#DCE5DF"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderBrush" Value="#D6E3D9"/>
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
         </Style>
 
+        <Style TargetType="DataGridRow">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F1F8F2"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#E8F5E9"/>
+                    <Setter Property="Foreground" Value="#1B5E20"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style TargetType="DataGridCell">
-            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Padding" Value="12,6"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
                     <Setter Property="Background" Value="#E8F5E9"/>
