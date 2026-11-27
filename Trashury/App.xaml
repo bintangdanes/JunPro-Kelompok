@@ -5,9 +5,8 @@
     <Application.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-        <!-- Palet Warna TRASHURY -->
+        <!-- Palet Warna Khas TRASHURY -->
         <SolidColorBrush x:Key="PrimaryBrush" Color="#1B5E20"/>
-        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#144A18"/>
         <SolidColorBrush x:Key="AccentBrush" Color="#2E7D32"/>
         <SolidColorBrush x:Key="InfoBrush" Color="#0277BD"/>
         <SolidColorBrush x:Key="DangerBrush" Color="#C62828"/>
@@ -16,11 +15,23 @@
         <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="PageBgBrush" Color="#F3F7F4"/>
 
+        <LinearGradientBrush x:Key="HeaderGradientBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#164E1B" Offset="0.0"/>
+            <GradientStop Color="#1B5E20" Offset="0.55"/>
+            <GradientStop Color="#236D29" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <DropShadowEffect x:Key="CardShadow" BlurRadius="14" ShadowDepth="2" Direction="270" Opacity="0.06" Color="#0F2E12"/>
+
+        <!-- Font Ikon Native Windows -->
+        <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+        <FontFamily x:Key="AppFont">Segoe UI Variable Text, Segoe UI</FontFamily>
+
         <!-- Modern Rounded Button -->
         <Style TargetType="Button">
-            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="Padding" Value="13,7"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Background" Value="#E8EEF0"/>
@@ -32,16 +43,16 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6"
+                                CornerRadius="7"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Opacity" Value="0.88"/>
+                                <Setter TargetName="border" Property="Opacity" Value="0.90"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Opacity" Value="0.75"/>
+                                <Setter TargetName="border" Property="Opacity" Value="0.78"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="border" Property="Opacity" Value="0.45"/>
@@ -52,35 +63,98 @@
             </Setter>
         </Style>
 
-        <!-- Modern TextBox -->
+        <!-- Modern Rounded TextBox dengan Focus Ring Hijau -->
         <Style TargetType="TextBox">
-            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Padding" Value="9,7"/>
             <Setter Property="BorderBrush" Value="#C8D6CD"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#1E2B22"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="InputBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                SnapsToDevicePixels="True">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="InputBorder" Property="BorderBrush" Value="#81C784"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="InputBorder" Property="BorderBrush" Value="#2E7D32"/>
+                                <Setter TargetName="InputBorder" Property="BorderThickness" Value="1.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
-        <!-- Modern PasswordBox -->
+        <!-- Modern Rounded PasswordBox dengan Focus Ring Hijau -->
         <Style TargetType="PasswordBox">
-            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Padding" Value="9,7"/>
             <Setter Property="BorderBrush" Value="#C8D6CD"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#1E2B22"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="PasswordBox">
+                        <Border x:Name="PwdBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                SnapsToDevicePixels="True">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="PwdBorder" Property="BorderBrush" Value="#81C784"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="PwdBorder" Property="BorderBrush" Value="#2E7D32"/>
+                                <Setter TargetName="PwdBorder" Property="BorderThickness" Value="1.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- Modern ComboBox -->
         <Style TargetType="ComboBox">
-            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Padding" Value="9,7"/>
             <Setter Property="BorderBrush" Value="#C8D6CD"/>
             <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#1E2B22"/>
+        </Style>
+
+        <!-- Modern Rounded Pill ProgressBar -->
+        <Style TargetType="ProgressBar">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid x:Name="TemplateRoot" SnapsToDevicePixels="True">
+                            <Border x:Name="PART_Track" Background="{TemplateBinding Background}" CornerRadius="6"/>
+                            <Border x:Name="PART_Indicator" HorizontalAlignment="Left" Background="{TemplateBinding Foreground}" CornerRadius="6"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- Modern TabControl & TabItem -->
@@ -90,7 +164,7 @@
         </Style>
 
         <Style TargetType="TabItem">
-            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="#546E7A"/>
@@ -99,7 +173,8 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
-                        <Border x:Name="TabBorder" Background="Transparent" BorderThickness="0,0,0,3" BorderBrush="Transparent" Padding="{TemplateBinding Padding}" Margin="0,0,4,0">
+                        <Border x:Name="TabBorder" Background="Transparent" BorderThickness="0,0,0,3" BorderBrush="Transparent"
+                                CornerRadius="8,8,0,0" Padding="{TemplateBinding Padding}" Margin="0,0,4,0">
                             <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -123,22 +198,25 @@
             <Setter Property="BorderBrush" Value="#DCE5DF"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="RowBackground" Value="White"/>
-            <Setter Property="AlternatingRowBackground" Value="#F9FBF9"/>
+            <Setter Property="AlternatingRowBackground" Value="#F8FBF8"/>
             <Setter Property="GridLinesVisibility" Value="Horizontal"/>
-            <Setter Property="HorizontalGridLinesBrush" Value="#EBF0EC"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#EBF1EC"/>
             <Setter Property="HeadersVisibility" Value="Column"/>
-            <Setter Property="RowHeight" Value="34"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="RowHeight" Value="36"/>
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
             <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#1E2B22"/>
             <Setter Property="CanUserAddRows" Value="False"/>
             <Setter Property="SelectionMode" Value="Single"/>
         </Style>
 
         <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#EFF5F0"/>
+            <Setter Property="Background" Value="#EDF4EE"/>
             <Setter Property="Foreground" Value="#1B5E20"/>
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+            <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Padding" Value="10,9"/>
             <Setter Property="BorderBrush" Value="#DCE5DF"/>
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
         </Style>

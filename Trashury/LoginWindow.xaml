@@ -2,16 +2,24 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="TRASHURY — Login Sistem Manajemen Bank Sampah"
+        Icon="pack://application:,,,/Assets/trashury.ico"
         Height="760" Width="1200" MinHeight="640" MinWidth="980"
         WindowStartupLocation="CenterScreen"
-        FontFamily="Segoe UI"
+        FontFamily="{StaticResource AppFont}"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
         Background="#F3F7F4">
     <DockPanel>
         <!-- Header konsisten dengan MainWindow -->
-        <Border DockPanel.Dock="Top" Background="#1B5E20" Padding="20,14">
-            <StackPanel VerticalAlignment="Center">
-                <TextBlock Text="TRASHURY" FontSize="22" FontWeight="Bold" Foreground="White"/>
-                <TextBlock Text="Ubah sampah jadi harta, kelola bank sampah lebih rapi (Hybrid Cloud-Edge)" FontSize="12" Foreground="#C8E6C9"/>
+        <Border DockPanel.Dock="Top" Background="{StaticResource HeaderGradientBrush}" Padding="22,14">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Border CornerRadius="8" ClipToBounds="True" Width="38" Height="38" Margin="0,0,12,0" BorderBrush="#4CAF50" BorderThickness="1">
+                    <Image Source="pack://application:,,,/Assets/trashury-icon.png" Stretch="UniformToFill"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="TRASHURY" FontSize="21" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="Ubah sampah jadi harta, kelola bank sampah lebih rapi (Hybrid Cloud-Edge)" FontSize="12" Foreground="#C8E6C9"/>
+                </StackPanel>
             </StackPanel>
         </Border>
 
@@ -20,27 +28,32 @@
             <Border Background="White"
                     BorderBrush="#DCE5DF"
                     BorderThickness="1"
-                    CornerRadius="12"
-                    Width="420"
-                    Padding="32"
+                    CornerRadius="14"
+                    Width="430"
+                    Padding="34"
+                    Effect="{StaticResource CardShadow}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
                 <StackPanel>
+                    <Border CornerRadius="14" ClipToBounds="True" Width="62" Height="62" HorizontalAlignment="Center" Margin="0,0,0,14">
+                        <Image Source="pack://application:,,,/Assets/trashury-icon.png" Stretch="UniformToFill"/>
+                    </Border>
+
                     <TextBlock Text="Masuk ke TRASHURY" FontSize="22" FontWeight="Bold" Foreground="#1B5E20" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Gunakan akun Pengurus atau Operator Bank Sampah" FontSize="12" Foreground="#546E7A" HorizontalAlignment="Center" Margin="0,4,0,22"/>
+                    <TextBlock Text="Gunakan akun Pengurus atau Operator Bank Sampah" FontSize="12.5" Foreground="#546E7A" HorizontalAlignment="Center" Margin="0,4,0,22"/>
 
-                    <TextBlock Text="Username" FontSize="12" FontWeight="SemiBold" Foreground="#455A64" Margin="0,0,0,4"/>
-                    <TextBox x:Name="UsernameBox" Padding="10,8" Margin="0,0,0,14"/>
+                    <TextBlock Text="Username" FontSize="12.5" FontWeight="SemiBold" Foreground="#37474F" Margin="0,0,0,5"/>
+                    <TextBox x:Name="UsernameBox" Margin="0,0,0,14"/>
 
-                    <TextBlock Text="Password" FontSize="12" FontWeight="SemiBold" Foreground="#455A64" Margin="0,0,0,4"/>
-                    <PasswordBox x:Name="PasswordBox" Padding="10,8" Margin="0,0,0,18"/>
+                    <TextBlock Text="Password" FontSize="12.5" FontWeight="SemiBold" Foreground="#37474F" Margin="0,0,0,5"/>
+                    <PasswordBox x:Name="PasswordBox" Margin="0,0,0,20"/>
 
                     <Button Content="Masuk" IsDefault="True" Click="Masuk_Click"
-                            Padding="14,10" Background="#1B5E20" Foreground="White" FontWeight="Bold" FontSize="14"/>
+                            Padding="14,11" Background="#1B5E20" Foreground="White" FontWeight="Bold" FontSize="14"/>
 
-                    <Border Background="#E8F5E9" BorderBrush="#C8E6C9" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,20,0,0">
+                    <Border Background="#F1F8F2" BorderBrush="#C8E6C9" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,20,0,0">
                         <TextBlock Text="Akun bawaan:&#x0a;• Pengurus (Akses Penuh): pengurus / pengurus123&#x0a;• Operator (Meja Setoran): operator / operator123"
-                                   FontSize="12" Foreground="#1B5E20"/>
+                                   FontSize="12" Foreground="#1B5E20" LineHeight="18"/>
                     </Border>
                 </StackPanel>
             </Border>
