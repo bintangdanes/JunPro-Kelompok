@@ -47,6 +47,7 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly LayananLaporan _layananLaporan;
     private readonly LayananBukuTabungan _layananBukuTabungan;
     private readonly IKlasifikasiSampah _klasifikasiSampah;
+    private readonly KlasifikasiHybrid? _klasifikasiHybrid;
 
     public event PropertyChangedEventHandler? PropertyChanged;
     private void OnPropertyChanged([CallerMemberName] string? name = null)
@@ -142,6 +143,19 @@ public class MainViewModel : INotifyPropertyChanged
     private string _hasilPrediksiAi = "Belum ada foto sampah diklasifikasi.";
     public string HasilPrediksiAi { get => _hasilPrediksiAi; set { _hasilPrediksiAi = value; OnPropertyChanged(); } }
 
+    private bool _gunakanCloudAi = true;
+    public bool GunakanCloudAi
+    {
+        get => _gunakanCloudAi;
+        set
+        {
+            _gunakanCloudAi = value;
+            if (_klasifikasiHybrid != null)
+                _klasifikasiHybrid.GunakanCloud = value;
+            OnPropertyChanged();
+        }
+    }
+
     private ImageSource? _previewGambarAi;
     public ImageSource? PreviewGambarAi { get => _previewGambarAi; set { _previewGambarAi = value; OnPropertyChanged(); } }
 
@@ -227,7 +241,8 @@ public class MainViewModel : INotifyPropertyChanged
 
         try
         {
-            _klasifikasiSampah = new KlasifikasiOnnx();
+            _klasifikasiHybrid = new KlasifikasiHybrid();
+            _klasifikasiSampah = _klasifikasiHybrid;
         }
         catch
         {
@@ -509,7 +524,7 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void JalankanKlasifikasiGambar(byte[] bytes)
+    private async void JalankanKlasifikasiGambar(byte[] bytes)
     {
         try
         {
@@ -524,10 +539,15 @@ public class MainViewModel : INotifyPropertyChanged
             bitmap.Freeze();
             PreviewGambarAi = bitmap;
 
-            var hasil = _klasifikasiSampah.Klasifikasi(bytes);
+            HasilPrediksiAi = GunakanCloudAi
+                ? "Menganalisis foto (Cloud SigLIP / fallback Edge ONNX)..."
+                : "Menganalisis foto secara offline (Edge ONNX)...";
+
+            var hasil = await Task.Run(() => _klasifikasiSampah.Klasifikasi(bytes));
             var barisInfo = new List<string>
             {
-                $"Prediksi AI: {hasil.KategoriTerdeteksi} (Confidence: {hasil.Confidence:P1})"
+                $"Prediksi AI: {hasil.KategoriTerdeteksi} (Confidence: {hasil.Confidence:P1})",
+                $"Model: {hasil.SumberModel}"
             };
 
             if (hasil.KandidatTeratas.Count > 1)

@@ -109,8 +109,10 @@
 
                             <Border Background="#E8F5E9" Padding="10" CornerRadius="6" Margin="0,0,0,12">
                                 <StackPanel>
-                                    <TextBlock Text="Klasifikasi Foto Sampah (AI ONNX)" FontWeight="SemiBold" Foreground="#1B5E20"/>
-                                    <Grid Margin="0,6,0,6">
+                                    <TextBlock Text="Klasifikasi Foto Sampah (Hybrid Cloud-Edge AI)" FontWeight="SemiBold" Foreground="#1B5E20"/>
+                                    <CheckBox Content="Gunakan Cloud AI (SigLIP 96%, fallback ONNX offline)"
+                                              IsChecked="{Binding GunakanCloudAi}" FontSize="11" Margin="0,4,0,2" Foreground="#1B5E20"/>
+                                    <Grid Margin="0,4,0,6">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="*"/>
