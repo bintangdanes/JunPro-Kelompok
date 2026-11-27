@@ -24,7 +24,7 @@ builder.Services.AddScoped<LayananTransaksi>();
 builder.Services.AddScoped<LayananLaporan>();
 builder.Services.AddScoped<LayananBukuTabungan>();
 builder.Services.AddSingleton<IKalkulatorDampak, KalkulatorCO2e>();
-builder.Services.AddSingleton<IKlasifikasiSampah, KlasifikasiOnnx>();
+builder.Services.AddSingleton<IKlasifikasiSampah, KlasifikasiHybrid>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
