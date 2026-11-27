@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Win32;
 using Trashury.Data;
@@ -37,15 +38,29 @@ public class RelayCommand : ICommand
     public void Execute(object? parameter) => _execute(parameter);
 }
 
+public record PilihanBulan(int Nomor, string Nama);
+
+public record BarGrafikEmisi(string NamaKategori, decimal TotalCO2eKg, double Persentase);
+
+public record ItemRiwayatTransaksi(
+    int Id,
+    DateTime Tanggal,
+    int NasabahId,
+    string NamaNasabah,
+    string Jenis,
+    string Rincian,
+    decimal Nominal,
+    bool IsSetoran);
+
 public class MainViewModel : INotifyPropertyChanged
 {
-    private readonly TrashuryDbContext _db;
-    private readonly NasabahRepository _nasabahRepo;
-    private readonly KategoriSampahRepository _kategoriRepo;
-    private readonly TransaksiRepository _transaksiRepo;
-    private readonly LayananTransaksi _layananTransaksi;
-    private readonly LayananLaporan _layananLaporan;
-    private readonly LayananBukuTabungan _layananBukuTabungan;
+    private TrashuryDbContext _db;
+    private NasabahRepository _nasabahRepo;
+    private KategoriSampahRepository _kategoriRepo;
+    private TransaksiRepository _transaksiRepo;
+    private LayananTransaksi _layananTransaksi;
+    private LayananLaporan _layananLaporan;
+    private LayananBukuTabungan _layananBukuTabungan;
     private readonly IKlasifikasiSampah _klasifikasiSampah;
     private readonly KlasifikasiHybrid? _klasifikasiHybrid;
 
@@ -53,19 +68,24 @@ public class MainViewModel : INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? name = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-    // --- Peran Pengguna (Operator vs Pengurus) ---
-    private bool _isPengurus = true;
-    public bool IsPengurus
+    // --- Pengguna & RBAC (Operator vs Pengurus) ---
+    private Pengguna? _penggunaAktif;
+    public Pengguna? PenggunaAktif
     {
-        get => _isPengurus;
-        set
+        get => _penggunaAktif;
+        private set
         {
-            _isPengurus = value;
+            _penggunaAktif = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(IsPengurus));
             OnPropertyChanged(nameof(NamaPeranAktif));
         }
     }
-    public string NamaPeranAktif => IsPengurus ? "Mode: Pengurus Bank Sampah (Akses Penuh)" : "Mode: Operator Meja Setoran";
+
+    public bool IsPengurus => PenggunaAktif?.IsPengurus ?? true;
+    public string NamaPeranAktif => PenggunaAktif != null
+        ? $"{PenggunaAktif.NamaLengkap} ({PenggunaAktif.Peran})"
+        : "Pengurus Bank Sampah (Pengurus)";
 
     // --- Koleksi Data ---
     public ObservableCollection<Nasabah> DaftarNasabah { get; } = new();
@@ -73,6 +93,31 @@ public class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<KategoriSampah> DaftarKategori { get; } = new();
     public ObservableCollection<DetailSetoran> KeranjangSetoran { get; } = new();
     public ObservableCollection<RekapKategori> RincianLaporan { get; } = new();
+    public ObservableCollection<BarGrafikEmisi> DataGrafikEmisi { get; } = new();
+    public ObservableCollection<ItemRiwayatTransaksi> DaftarRiwayatTransaksi { get; } = new();
+
+    public List<PilihanBulan> DaftarBulan { get; } =
+    [
+        new(1, "Januari"), new(2, "Februari"), new(3, "Maret"), new(4, "April"),
+        new(5, "Mei"), new(6, "Juni"), new(7, "Juli"), new(8, "Agustus"),
+        new(9, "September"), new(10, "Oktober"), new(11, "November"), new(12, "Desember")
+    ];
+
+    public List<string> PilihanFilterJenis { get; } = ["Semua", "Setoran", "Penarikan"];
+
+    private string _filterJenisRiwayat = "Semua";
+    public string FilterJenisRiwayat
+    {
+        get => _filterJenisRiwayat;
+        set { _filterJenisRiwayat = value; OnPropertyChanged(); SegarkanRiwayatTransaksi(); }
+    }
+
+    private string _kataKunciRiwayat = string.Empty;
+    public string KataKunciRiwayat
+    {
+        get => _kataKunciRiwayat;
+        set { _kataKunciRiwayat = value; OnPropertyChanged(); SegarkanRiwayatTransaksi(); }
+    }
 
     // --- Form Master Nasabah ---
     private string _namaNasabahBaru = string.Empty;
@@ -209,7 +254,7 @@ public class MainViewModel : INotifyPropertyChanged
     public string TotalPenarikanDashboard => $"Rp {RekapSaatIni?.TotalPenarikan ?? 0:N0}";
 
     // --- Commands ---
-    public ICommand GantiPeranCommand { get; }
+    public ICommand LogoutCommand { get; }
     public ICommand TambahNasabahCommand { get; }
     public ICommand UbahNasabahCommand { get; }
     public ICommand HapusNasabahCommand { get; }
@@ -228,16 +273,15 @@ public class MainViewModel : INotifyPropertyChanged
     public ICommand MuatLaporanCommand { get; }
     public ICommand EksporCsvCommand { get; }
     public ICommand EksporPdfCommand { get; }
+    public ICommand BatalkanTransaksiCommand { get; }
+    public ICommand CetakUlangBuktiCommand { get; }
+    public ICommand BackupDatabaseCommand { get; }
+    public ICommand RestoreDatabaseCommand { get; }
 
-    public MainViewModel()
+    public MainViewModel(Pengguna? penggunaAktif = null)
     {
-        _db = TrashuryDbContextFactory.Buat();
-        _nasabahRepo = new NasabahRepository(_db);
-        _kategoriRepo = new KategoriSampahRepository(_db);
-        _transaksiRepo = new TransaksiRepository(_db);
-        _layananTransaksi = new LayananTransaksi(_nasabahRepo, _transaksiRepo);
-        _layananLaporan = new LayananLaporan(_transaksiRepo);
-        _layananBukuTabungan = new LayananBukuTabungan(_nasabahRepo, _transaksiRepo);
+        _penggunaAktif = penggunaAktif;
+        (_db, _nasabahRepo, _kategoriRepo, _transaksiRepo, _layananTransaksi, _layananLaporan, _layananBukuTabungan) = BuatKonteksLayanan();
 
         try
         {
@@ -249,7 +293,7 @@ public class MainViewModel : INotifyPropertyChanged
             _klasifikasiSampah = new KlasifikasiDummy();
         }
 
-        GantiPeranCommand = new RelayCommand(_ => IsPengurus = !IsPengurus);
+        LogoutCommand = new RelayCommand(_ => LogoutDanGantiAkun());
         TambahNasabahCommand = new RelayCommand(_ => TambahNasabah());
         UbahNasabahCommand = new RelayCommand(_ => UbahNasabah());
         HapusNasabahCommand = new RelayCommand(_ => HapusNasabah());
@@ -268,8 +312,35 @@ public class MainViewModel : INotifyPropertyChanged
         MuatLaporanCommand = new RelayCommand(_ => MuatLaporan());
         EksporCsvCommand = new RelayCommand(_ => EksporCsv());
         EksporPdfCommand = new RelayCommand(_ => EksporPdf());
+        BatalkanTransaksiCommand = new RelayCommand(obj => { if (obj is ItemRiwayatTransaksi item) BatalkanTransaksi(item); });
+        CetakUlangBuktiCommand = new RelayCommand(obj => { if (obj is ItemRiwayatTransaksi item) CetakUlangBuktiSetoran(item); });
+        BackupDatabaseCommand = new RelayCommand(_ => BackupDatabase());
+        RestoreDatabaseCommand = new RelayCommand(_ => RestoreDatabase());
 
         MuatSemuaData();
+    }
+
+    private static (TrashuryDbContext, NasabahRepository, KategoriSampahRepository, TransaksiRepository, LayananTransaksi, LayananLaporan, LayananBukuTabungan) BuatKonteksLayanan()
+    {
+        var db = TrashuryDbContextFactory.Buat();
+        var nasabahRepo = new NasabahRepository(db);
+        var kategoriRepo = new KategoriSampahRepository(db);
+        var transaksiRepo = new TransaksiRepository(db);
+        return (
+            db,
+            nasabahRepo,
+            kategoriRepo,
+            transaksiRepo,
+            new LayananTransaksi(nasabahRepo, transaksiRepo),
+            new LayananLaporan(transaksiRepo),
+            new LayananBukuTabungan(nasabahRepo, transaksiRepo));
+    }
+
+    private void LogoutDanGantiAkun()
+    {
+        var login = new LoginWindow { Owner = Application.Current.MainWindow };
+        if (login.ShowDialog() == true && login.PenggunaTerautentikasi != null)
+            PenggunaAktif = login.PenggunaTerautentikasi;
     }
 
     private void MuatSemuaData()
@@ -292,6 +363,162 @@ public class MainViewModel : INotifyPropertyChanged
         KategoriSetoranTerpilih ??= DaftarKategori.FirstOrDefault();
 
         MuatLaporan();
+        SegarkanRiwayatTransaksi();
+    }
+
+    private void SegarkanRiwayatTransaksi()
+    {
+        DaftarRiwayatTransaksi.Clear();
+        var petaNasabah = DaftarNasabah.ToDictionary(n => n.Id, n => n.Nama);
+        string kunci = KataKunciRiwayat.Trim();
+
+        foreach (var t in _transaksiRepo.GetAll())
+        {
+            bool isSetoran = t is SetoranSampah;
+            string jenis = isSetoran ? "Setoran" : "Penarikan";
+
+            if (FilterJenisRiwayat != "Semua" && !string.Equals(FilterJenisRiwayat, jenis, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            string namaNasabah = petaNasabah.TryGetValue(t.NasabahId, out string? nama) ? nama : $"Nasabah #{t.NasabahId}";
+            if (!string.IsNullOrEmpty(kunci) &&
+                !namaNasabah.Contains(kunci, StringComparison.OrdinalIgnoreCase) &&
+                !t.Id.ToString().Contains(kunci, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            string rincian = t is SetoranSampah s
+                ? string.Join(", ", s.DetailSetoran.Select(d => $"{d.Kategori.Nama} ({d.BeratKg:N2} kg)"))
+                : "Penarikan tunai saldo";
+
+            DaftarRiwayatTransaksi.Add(new ItemRiwayatTransaksi(
+                t.Id, t.Tanggal, t.NasabahId, namaNasabah, jenis, rincian, t.Nominal, isSetoran));
+        }
+    }
+
+    private void BatalkanTransaksi(ItemRiwayatTransaksi item)
+    {
+        if (!IsPengurus)
+        {
+            MessageBox.Show("Hanya Pengurus Bank Sampah yang dapat membatalkan transaksi.", "Akses Ditolak", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (MessageBox.Show(
+                $"Batalkan transaksi #{item.Id} ({item.Jenis} — {item.NamaNasabah} — Rp {item.Nominal:N0})?\nSaldo nasabah akan dikembalikan otomatis.",
+                "Konfirmasi Pembatalan",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            _layananTransaksi.BatalkanTransaksi(item.Id);
+            MuatSemuaData();
+            MessageBox.Show($"Transaksi #{item.Id} berhasil dibatalkan dan saldo nasabah telah disesuaikan.", "Pembatalan Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Gagal membatalkan transaksi: {ex.Message}", "Pembatalan Ditolak", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void CetakUlangBuktiSetoran(ItemRiwayatTransaksi item)
+    {
+        if (!item.IsSetoran)
+        {
+            MessageBox.Show("Cetak bukti setoran hanya tersedia untuk transaksi Setoran.", "Informasi", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        try
+        {
+            if (_transaksiRepo.GetById(item.Id) is not SetoranSampah setoran)
+                return;
+
+            decimal co2e = new KalkulatorCO2e().HitungCO2e(setoran);
+            var dialog = new SaveFileDialog
+            {
+                Title = "Simpan Bukti Setoran PDF",
+                Filter = "PDF Document|*.pdf",
+                FileName = $"BuktiSetoran_{setoran.Id}_{item.NamaNasabah.Replace(' ', '_')}.pdf"
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                File.WriteAllBytes(dialog.FileName, DokumenBuktiSetoranPdf.Buat(setoran, item.NamaNasabah, co2e));
+                MessageBox.Show($"Bukti setoran berhasil disimpan ke:\n{dialog.FileName}", "Cetak Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Gagal mencetak bukti setoran: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void BackupDatabase()
+    {
+        if (!IsPengurus) return;
+
+        var dialog = new SaveFileDialog
+        {
+            Title = "Cadangkan Basis Data SQLite TRASHURY",
+            Filter = "SQLite Database|*.db",
+            FileName = $"trashury-backup-{DateTime.Now:yyyyMMdd-HHmm}.db"
+        };
+
+        if (dialog.ShowDialog() != true)
+            return;
+
+        try
+        {
+            string sumber = TrashuryDbContextFactory.LokasiBasisDataBawaan();
+            SqliteConnection.ClearAllPools();
+            File.Copy(sumber, dialog.FileName, overwrite: true);
+            MessageBox.Show($"Basis data berhasil dicadangkan ke:\n{dialog.FileName}", "Backup Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Gagal mencadangkan basis data: {ex.Message}", "Error Backup", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void RestoreDatabase()
+    {
+        if (!IsPengurus) return;
+
+        var dialog = new OpenFileDialog
+        {
+            Title = "Pilih Berkas Backup Database SQLite (.db)",
+            Filter = "SQLite Database|*.db"
+        };
+
+        if (dialog.ShowDialog() != true)
+            return;
+
+        if (MessageBox.Show(
+                "Memulihkan basis data akan menimpa seluruh data saat ini. Lanjutkan?",
+                "Konfirmasi Restore",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            string tujuan = TrashuryDbContextFactory.LokasiBasisDataBawaan();
+            _db.Dispose();
+            SqliteConnection.ClearAllPools();
+            File.Copy(dialog.FileName, tujuan, overwrite: true);
+
+            (_db, _nasabahRepo, _kategoriRepo, _transaksiRepo, _layananTransaksi, _layananLaporan, _layananBukuTabungan) = BuatKonteksLayanan();
+            _db.Database.Migrate();
+            new LayananAutentikasi(_db).PastikanAkunBawaan();
+            MuatSemuaData();
+            MessageBox.Show("Basis data berhasil dipulihkan dan dimuat ulang.", "Restore Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            (_db, _nasabahRepo, _kategoriRepo, _transaksiRepo, _layananTransaksi, _layananLaporan, _layananBukuTabungan) = BuatKonteksLayanan();
+            MessageBox.Show($"Gagal memulihkan basis data: {ex.Message}", "Error Restore", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private void SegarkanDaftarNasabahMaster()
@@ -711,8 +938,18 @@ public class MainViewModel : INotifyPropertyChanged
         {
             RekapSaatIni = _layananLaporan.LaporanBulanan(BulanLaporan, TahunLaporan);
             RincianLaporan.Clear();
+            DataGrafikEmisi.Clear();
+
+            decimal maksEmisi = RekapSaatIni.PerKategori.Count > 0
+                ? RekapSaatIni.PerKategori.Max(k => k.TotalCO2eKg)
+                : 0m;
+
             foreach (var item in RekapSaatIni.PerKategori)
+            {
                 RincianLaporan.Add(item);
+                double persen = maksEmisi > 0 ? (double)(item.TotalCO2eKg / maksEmisi * 100m) : 0;
+                DataGrafikEmisi.Add(new BarGrafikEmisi(item.NamaKategori, item.TotalCO2eKg, persen));
+            }
         }
         catch (Exception ex)
         {

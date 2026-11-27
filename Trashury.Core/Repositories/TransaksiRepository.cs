@@ -33,6 +33,12 @@ public class TransaksiRepository : IRepository<Transaksi>
         _db.Transaksi.Add(entitas);
     }
 
+    public void Hapus(Transaksi entitas)
+    {
+        ArgumentNullException.ThrowIfNull(entitas);
+        _db.Transaksi.Remove(entitas);
+    }
+
     public int SimpanPerubahan() => _db.SaveChanges();
 
     public IEnumerable<Transaksi> GetByPeriode(DateTime awal, DateTime akhir)

@@ -23,6 +23,7 @@ builder.Services.AddScoped<KategoriSampahRepository>();
 builder.Services.AddScoped<LayananTransaksi>();
 builder.Services.AddScoped<LayananLaporan>();
 builder.Services.AddScoped<LayananBukuTabungan>();
+builder.Services.AddScoped<LayananAutentikasi>();
 builder.Services.AddSingleton<IKalkulatorDampak, KalkulatorCO2e>();
 builder.Services.AddSingleton<IKlasifikasiSampah, KlasifikasiHybrid>();
 
@@ -35,12 +36,42 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TrashuryDbContext>();
     db.Database.Migrate();
+    scope.ServiceProvider.GetRequiredService<LayananAutentikasi>().PastikanAkunBawaan();
 }
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
+
+app.MapPost("/api/auth/login", (LoginRequest req, LayananAutentikasi auth) =>
+{
+    var user = auth.Login(req.Username, req.Password);
+    if (user is null)
+        return Results.Unauthorized();
+
+    return Results.Ok(new
+    {
+        user.Id,
+        user.Username,
+        user.NamaLengkap,
+        user.Peran,
+        user.IsPengurus
+    });
+});
+
+app.MapDelete("/api/transaksi/{id:int}", (int id, LayananTransaksi layanan) =>
+{
+    try
+    {
+        layanan.BatalkanTransaksi(id);
+        return Results.Ok(new { pesan = $"Transaksi #{id} berhasil dibatalkan." });
+    }
+    catch (Exception ex) when (ex is KeyNotFoundException or InvalidOperationException)
+    {
+        return Results.BadRequest(new { pesan = ex.Message });
+    }
+});
 
 app.MapGet("/api/kategori", (KategoriSampahRepository repo) =>
     Results.Ok(repo.GetAll().OrderBy(k => k.Id)));
@@ -210,6 +241,7 @@ static IResult SusunBuku(LayananBukuTabungan layanan, int nasabahId, Func<BukuTa
     }
 }
 
+public record LoginRequest(string Username, string Password);
 public record BuatNasabahRequest(string Nama);
 public record DetailSetoranRequest(int KategoriId, decimal BeratKg);
 public record CatatSetoranRequest(int NasabahId, List<DetailSetoranRequest> Detail);

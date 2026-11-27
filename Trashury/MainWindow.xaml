@@ -3,11 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:Trashury.ViewModels"
         Title="TRASHURY — Sistem Manajemen Bank Sampah &amp; Dampak Iklim"
-        Height="720" Width="1120" WindowStartupLocation="CenterScreen"
+        Height="740" Width="1160" WindowStartupLocation="CenterScreen"
         Background="#F4F7F5">
-    <Window.DataContext>
-        <vm:MainViewModel/>
-    </Window.DataContext>
 
     <DockPanel>
         <!-- Header Utama -->
@@ -19,7 +16,7 @@
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="{Binding NamaPeranAktif}" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <Button Content="Ganti Peran (Operator / Pengurus)" Command="{Binding GantiPeranCommand}"
+                    <Button Content="Logout / Ganti Akun" Command="{Binding LogoutCommand}"
                             Padding="12,6" Background="#388E3C" Foreground="White" BorderThickness="0" Cursor="Hand"/>
                 </StackPanel>
             </DockPanel>
@@ -38,8 +35,12 @@
 
                     <!-- Filter Bulan & Tahun + Tombol Ekspor (Khusus Pengurus) -->
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,14">
-                        <TextBlock Text="Bulan (1-12):" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBox Text="{Binding BulanLaporan}" Width="50" Padding="4" Margin="0,0,12,0"/>
+                        <TextBlock Text="Bulan:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <ComboBox ItemsSource="{Binding DaftarBulan}"
+                                  SelectedValue="{Binding BulanLaporan}"
+                                  SelectedValuePath="Nomor"
+                                  DisplayMemberPath="Nama"
+                                  Width="125" Padding="4" Margin="0,0,12,0"/>
                         <TextBlock Text="Tahun:" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBox Text="{Binding TahunLaporan}" Width="70" Padding="4" Margin="0,0,12,0"/>
                         <Button Content="Muat Rekap" Command="{Binding MuatLaporanCommand}" Padding="12,5" Background="#2E7D32" Foreground="White" Margin="0,0,16,0"/>
@@ -78,15 +79,43 @@
                         </Border>
                     </UniformGrid>
 
-                    <!-- Tabel Rincian per Kategori -->
-                    <DataGrid Grid.Row="2" ItemsSource="{Binding RincianLaporan}" AutoGenerateColumns="False" IsReadOnly="True">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Kategori Sampah" Binding="{Binding NamaKategori}" Width="*"/>
-                            <DataGridTextColumn Header="Total Berat (kg)" Binding="{Binding TotalBeratKg, StringFormat=N2}" Width="150"/>
-                            <DataGridTextColumn Header="Total Nilai (Rp)" Binding="{Binding TotalNilai, StringFormat=N0}" Width="180"/>
-                            <DataGridTextColumn Header="Emisi CO2e Dihindari (kg)" Binding="{Binding TotalCO2eKg, StringFormat=N2}" Width="200"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
+                    <!-- Tabel Rincian per Kategori + Grafik Batang Kontribusi CO2e -->
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <DataGrid Grid.Column="0" ItemsSource="{Binding RincianLaporan}" AutoGenerateColumns="False" IsReadOnly="True" Margin="0,0,12,0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Kategori Sampah" Binding="{Binding NamaKategori}" Width="*"/>
+                                <DataGridTextColumn Header="Total Berat (kg)" Binding="{Binding TotalBeratKg, StringFormat=N2}" Width="125"/>
+                                <DataGridTextColumn Header="Total Nilai (Rp)" Binding="{Binding TotalNilai, StringFormat=N0}" Width="135"/>
+                                <DataGridTextColumn Header="CO2e (kg)" Binding="{Binding TotalCO2eKg, StringFormat=N2}" Width="105"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <Border Grid.Column="1" Background="#FAFAFA" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="6" Padding="12">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Top" Text="Grafik Kontribusi Reduksi CO2e" FontSize="14" FontWeight="Bold" Foreground="#1B5E20" Margin="0,0,0,10"/>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding DataGrafikEmisi}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Margin="0,0,0,10">
+                                                    <DockPanel Margin="0,0,0,3">
+                                                        <TextBlock DockPanel.Dock="Left" Text="{Binding NamaKategori}" FontWeight="SemiBold" FontSize="12"/>
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding TotalCO2eKg, StringFormat='{}{0:N2} kg CO2e'}" FontSize="12" Foreground="#2E7D32"/>
+                                                    </DockPanel>
+                                                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding Persentase}" Height="16" Foreground="#2E7D32" Background="#E8F5E9"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </DockPanel>
+                        </Border>
+                    </Grid>
                 </Grid>
             </TabItem>
 
@@ -209,9 +238,59 @@
                 </Grid>
             </TabItem>
 
-            <!-- TAB 4: MASTER DATA (KHUSUS PENGURUS BANK SAMPAH) -->
+            <!-- TAB 4: RIWAYAT TRANSAKSI GLOBAL & PEMBATALAN -->
+            <TabItem Header="Riwayat Transaksi">
+                <DockPanel Margin="16">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="Filter Jenis:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <ComboBox ItemsSource="{Binding PilihanFilterJenis}" SelectedItem="{Binding FilterJenisRiwayat}" Width="120" Padding="4" Margin="0,0,16,0"/>
+                        <TextBlock Text="Cari (Nasabah / ID):" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBox Text="{Binding KataKunciRiwayat, UpdateSourceTrigger=PropertyChanged}" Width="240" Padding="5"/>
+                    </StackPanel>
+
+                    <DataGrid ItemsSource="{Binding DaftarRiwayatTransaksi}" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="55"/>
+                            <DataGridTextColumn Header="Tanggal" Binding="{Binding Tanggal, StringFormat=dd/MM/yyyy HH:mm}" Width="130"/>
+                            <DataGridTextColumn Header="Nasabah" Binding="{Binding NamaNasabah}" Width="160"/>
+                            <DataGridTextColumn Header="Jenis" Binding="{Binding Jenis}" Width="90"/>
+                            <DataGridTextColumn Header="Rincian" Binding="{Binding Rincian}" Width="*"/>
+                            <DataGridTextColumn Header="Nominal (Rp)" Binding="{Binding Nominal, StringFormat=N0}" Width="115"/>
+                            <DataGridTemplateColumn Header="Aksi" Width="155">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="Bukti" Padding="7,2" Margin="0,0,4,0" Background="#0277BD" Foreground="White"
+                                                    Visibility="{Binding IsSetoran, Converter={StaticResource BoolToVis}}"
+                                                    Command="{Binding DataContext.CetakUlangBuktiCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}"/>
+                                            <Button Content="Batalkan" Padding="7,2" Background="#C62828" Foreground="White"
+                                                    Visibility="{Binding DataContext.IsPengurus, RelativeSource={RelativeSource AncestorType=DataGrid}, Converter={StaticResource BoolToVis}}"
+                                                    Command="{Binding DataContext.BatalkanTransaksiCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
+            <!-- TAB 5: MASTER DATA (KHUSUS PENGURUS BANK SAMPAH) -->
             <TabItem Header="Master Data (Pengurus)" Visibility="{Binding IsPengurus, Converter={StaticResource BoolToVis}}">
-                <Grid Margin="16">
+                <DockPanel Margin="16">
+                    <Border DockPanel.Dock="Bottom" Background="#ECEFF1" CornerRadius="6" Padding="10" Margin="0,12,0,0">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Left" Text="Pemeliharaan Basis Data Lokal (SQLite):" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button Content="Cadangkan Database (.db)" Command="{Binding BackupDatabaseCommand}" Padding="12,6" Background="#37474F" Foreground="White" Margin="0,0,8,0"/>
+                                <Button Content="Pulihkan Database (.db)" Command="{Binding RestoreDatabaseCommand}" Padding="12,6" Background="#E65100" Foreground="White"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -277,6 +356,7 @@
                         </DataGrid>
                     </DockPanel>
                 </Grid>
+                </DockPanel>
             </TabItem>
         </TabControl>
     </DockPanel>

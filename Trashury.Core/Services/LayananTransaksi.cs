@@ -62,4 +62,35 @@ public class LayananTransaksi
         _transaksiRepository.SimpanPerubahan();
         return penarikan;
     }
+
+    /// <summary>
+    /// Membatalkan transaksi yang keliru dan mengembalikan saldo nasabah seperti semula.
+    /// </summary>
+    public void BatalkanTransaksi(int transaksiId)
+    {
+        var transaksi = _transaksiRepository.GetById(transaksiId);
+        var nasabah = _nasabahRepository.GetById(transaksi.NasabahId);
+
+        if (transaksi is SetoranSampah setoran)
+        {
+            // Membalik kredit setoran dengan mendebit saldo nasabah.
+            nasabah.Debit(setoran.Nominal);
+        }
+        else if (transaksi is PenarikanSaldo penarikan)
+        {
+            // Membalik debit penarikan dengan mengkredit kembali saldo nasabah.
+            nasabah.Kredit(penarikan.Nominal);
+        }
+
+        if (_transaksiRepository is TransaksiRepository repoKonkret)
+        {
+            repoKonkret.Hapus(transaksi);
+        }
+        else
+        {
+            throw new NotSupportedException("Repository transaksi tidak mendukung penghapusan.");
+        }
+
+        _transaksiRepository.SimpanPerubahan();
+    }
 }
