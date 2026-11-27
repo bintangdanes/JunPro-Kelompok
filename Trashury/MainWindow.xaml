@@ -75,6 +75,10 @@
                                           SelectedValue="{Binding BulanLaporan}"
                                           SelectedValuePath="Nomor"
                                           DisplayMemberPath="Nama"
+                                          IsEditable="True"
+                                          IsTextSearchEnabled="True"
+                                          StaysOpenOnEdit="True"
+                                          TextSearch.TextPath="Nama"
                                           Width="140" Margin="0,0,14,0"/>
                                 <TextBlock Text="Tahun:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="13" Foreground="#37474F" Margin="0,0,6,0"/>
                                 <TextBox Text="{Binding TahunLaporan}" Width="78" Margin="0,0,12,0"/>
@@ -287,7 +291,12 @@
 
                                     <TextBlock Text="Kategori Sampah" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,0,5"/>
                                     <ComboBox ItemsSource="{Binding DaftarKategori}" SelectedItem="{Binding KategoriSetoranTerpilih}"
-                                              DisplayMemberPath="Nama" Margin="0,0,0,12"/>
+                                              DisplayMemberPath="Nama"
+                                              IsEditable="True"
+                                              IsTextSearchEnabled="True"
+                                              StaysOpenOnEdit="True"
+                                              TextSearch.TextPath="Nama"
+                                              Margin="0,0,0,12"/>
 
                                     <TextBlock Text="Berat Sampah (kg)" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,0,5"/>
                                     <TextBox Text="{Binding BeratSetoranInput}" Margin="0,0,0,16"/>
@@ -489,7 +498,11 @@
                             <!-- Baris 2: Filter Jenis & Pencarian Nama Nasabah -->
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Filter Jenis:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,6,0"/>
-                                <ComboBox ItemsSource="{Binding PilihanFilterJenis}" SelectedItem="{Binding FilterJenisRiwayat}" Width="135" Margin="0,0,16,0"/>
+                                <ComboBox ItemsSource="{Binding PilihanFilterJenis}" SelectedItem="{Binding FilterJenisRiwayat}"
+                                          IsEditable="True"
+                                          IsTextSearchEnabled="True"
+                                          StaysOpenOnEdit="True"
+                                          Width="135" Margin="0,0,16,0"/>
                                 <TextBlock Text="Cari Nasabah:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="12.5" Foreground="#37474F" Margin="0,0,6,0"/>
                                 <TextBox Text="{Binding KataKunciRiwayat, UpdateSourceTrigger=PropertyChanged}" Width="280" ToolTip="Ketik nama nasabah"/>
                             </StackPanel>

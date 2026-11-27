@@ -137,7 +137,9 @@
         <Style TargetType="ComboBox">
             <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="9,7"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="BorderBrush" Value="#C8D6CD"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="#1E2B22"/>
