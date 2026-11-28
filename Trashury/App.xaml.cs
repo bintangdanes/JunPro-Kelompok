@@ -11,7 +11,7 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        using (var db = TrashuryDbContextFactory.Buat())
+        using (var db = TrashuryDbContextFactory.BuatSesuaiKonfigurasi())
         {
             db.Database.Migrate();
             new LayananAutentikasi(db).PastikanAkunBawaan();

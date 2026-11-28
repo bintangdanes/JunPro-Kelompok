@@ -461,7 +461,7 @@ Per commit terakhir, berikut kondisi nyata kode di repo ini:
 | `NasabahRepository`, `TransaksiRepository`, `KategoriSampahRepository` | ✅ Selesai | Menulis ke SQLite; `SimpanPerubahan()` memanggil `SaveChanges()` |
 | `KalkulatorCO2e` | ✅ Selesai | Menjumlahkan CO2e seluruh baris setoran |
 | `LayananTransaksi` | ✅ Selesai | `CatatSetoran()` dan `ProsesPenarikan()` tersimpan permanen |
-| `Trashury.Tests` | ✅ Selesai | 40 test lulus (persistensi SQLite, transaksi & pembatalan, laporan bulanan, buku tabungan, AI ONNX/Hybrid, autentikasi RBAC) |
+| `Trashury.Tests` | ✅ Selesai | 44 test lulus (persistensi SQLite, koneksi cloud, transaksi & pembatalan, laporan bulanan, buku tabungan, AI ONNX/Hybrid, autentikasi RBAC) |
 | `Trashury.DbTool` | ✅ Selesai | Perkakas migrate / seed / info untuk demo dan pemeriksaan |
 | `LayananLaporan.LaporanBulanan()` | ✅ Selesai | Mengembalikan DTO `RekapBulanan` (total setoran, penarikan, berat, CO2e) beserta rincian `RekapKategori` |
 | `LayananLaporan.EksporCsv()` | ✅ Selesai | Rincian per kategori + baris TOTAL; bawaan format Excel Indonesia (`;` dan koma desimal), opsi `FormatCsv.Standar` (RFC 4180) |
@@ -507,7 +507,7 @@ dotnet run --project Trashury.Api
 dotnet publish Trashury/Trashury.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish/SingleFile
 ```
 
-> **Status saat ini.** Seluruh proyek dalam solusi (`Trashury.Core`, `Trashury`, `Trashury.Api`, `Trashury.DbTool`, dan `Trashury.Tests`) sudah selesai dan lulus 40 pengujian otomatis.
+> **Status saat ini.** Seluruh proyek dalam solusi (`Trashury.Core`, `Trashury`, `Trashury.Api`, `Trashury.DbTool`, dan `Trashury.Tests`) sudah selesai dan lulus 44 pengujian otomatis. Mode cloud (Supabase) aktif bila `TRASHURY_DB_URL` diatur; pada mode ini menu cadangkan/pulihkan berkas SQLite dinonaktifkan karena pencadangan dikelola Supabase.
 
 ### Informasi Akses Demo
 
@@ -536,7 +536,7 @@ JunPro-Kelompok/
 │   ├── App.xaml / MainWindow.xaml / KameraWindow.xaml
 │   └── ViewModels/             # MainViewModel, RelayCommand
 ├── Trashury.Api/               # net8.0 — layanan REST Web API + Swagger UI
-├── Trashury.Tests/             # net8.0 — 34 pengujian otomatis xUnit
+├── Trashury.Tests/             # net8.0 — 44 pengujian otomatis xUnit
 ├── Trashury.DbTool/            # net8.0 — perkakas basis data (migrate/seed/info)
 ├── docs/                       # GitHub Pages, class diagram, skema basis data
 ├── Trashury.sln

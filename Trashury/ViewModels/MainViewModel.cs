@@ -420,7 +420,7 @@ public class MainViewModel : INotifyPropertyChanged
 
     private static (TrashuryDbContext, NasabahRepository, KategoriSampahRepository, TransaksiRepository, LayananTransaksi, LayananLaporan, LayananBukuTabungan) BuatKonteksLayanan()
     {
-        var db = TrashuryDbContextFactory.Buat();
+        var db = TrashuryDbContextFactory.BuatSesuaiKonfigurasi();
         var nasabahRepo = new NasabahRepository(db);
         var kategoriRepo = new KategoriSampahRepository(db);
         var transaksiRepo = new TransaksiRepository(db);
@@ -693,9 +693,27 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Cadangkan/pulihkan hanya menyalin berkas SQLite lokal. Pada mode cloud
+    /// data ada di Supabase, sehingga menyalin berkas lokal akan menyesatkan.
+    /// </summary>
+    private static bool TolakJikaModeCloud()
+    {
+        if (TrashuryDbContextFactory.KoneksiCloudDariLingkungan() is null)
+            return false;
+
+        MessageBox.Show(
+            "Aplikasi sedang memakai cloud database (Supabase). Pencadangan dikelola otomatis oleh Supabase di menu Database > Backups pada dasbor proyek.",
+            "Mode Cloud",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+        return true;
+    }
+
     private void BackupDatabase()
     {
         if (!IsPengurus) return;
+        if (TolakJikaModeCloud()) return;
 
         var dialog = new SaveFileDialog
         {
@@ -723,6 +741,7 @@ public class MainViewModel : INotifyPropertyChanged
     private void RestoreDatabase()
     {
         if (!IsPengurus) return;
+        if (TolakJikaModeCloud()) return;
 
         var dialog = new OpenFileDialog
         {

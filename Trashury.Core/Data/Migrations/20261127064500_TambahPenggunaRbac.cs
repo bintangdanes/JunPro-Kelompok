@@ -1,15 +1,13 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Trashury.Data.Migrations
 {
-    [DbContext(typeof(TrashuryDbContext))]
-    [Migration("20261127064500_TambahPenggunaRbac")]
+    /// <inheritdoc />
     public partial class TambahPenggunaRbac : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -35,9 +33,11 @@ namespace Trashury.Data.Migrations
                 unique: true);
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(name: "Pengguna");
+            migrationBuilder.DropTable(
+                name: "Pengguna");
         }
     }
 }
