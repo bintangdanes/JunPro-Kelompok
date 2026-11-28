@@ -5,8 +5,9 @@ using Trashury.Models;
 namespace Trashury.Data;
 
 /// <summary>
-/// Sesi basis data SQLite lokal TRASHURY. Seluruh data disimpan dalam satu
-/// berkas di mesin operator sehingga aplikasi tetap berjalan tanpa internet.
+/// Sesi basis data TRASHURY. Class ini dipakai untuk SQLite lokal (offline),
+/// sedangkan <see cref="TrashuryPostgresDbContext"/> untuk PostgreSQL di cloud.
+/// Pemetaan entitas sama persis; yang berbeda hanya penyedia dan set migrasinya.
 /// </summary>
 public class TrashuryDbContext : DbContext
 {
@@ -16,6 +17,14 @@ public class TrashuryDbContext : DbContext
     public DbSet<Pengguna> Pengguna => Set<Pengguna>();
 
     public TrashuryDbContext(DbContextOptions<TrashuryDbContext> options)
+        : base(options)
+    {
+    }
+
+    /// <summary>
+    /// Dipakai subclass penyedia lain agar migrasinya terpisah dari SQLite.
+    /// </summary>
+    protected TrashuryDbContext(DbContextOptions options)
         : base(options)
     {
     }

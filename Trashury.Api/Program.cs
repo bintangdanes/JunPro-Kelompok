@@ -7,15 +7,30 @@ using Trashury.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-string dbPath = Environment.GetEnvironmentVariable("TRASHURY_DB_PATH")
-    ?? TrashuryDbContextFactory.LokasiBasisDataBawaan();
+// TRASHURY_DB_URL terisi (env var atau user-secrets) -> PostgreSQL cloud (Supabase).
+// Kosong -> berkas SQLite lokal di TRASHURY_DB_PATH atau lokasi bawaan.
+string? koneksiCloud = builder.Configuration[TrashuryDbContextFactory.VariabelKoneksiCloud];
 
-string? dbDir = Path.GetDirectoryName(dbPath);
-if (!string.IsNullOrEmpty(dbDir))
-    Directory.CreateDirectory(dbDir);
+if (!string.IsNullOrWhiteSpace(koneksiCloud))
+{
+    string koneksi = TrashuryDbContextFactory.NormalisasiKoneksiPostgres(koneksiCloud);
+    builder.Services.AddDbContext<TrashuryDbContext, TrashuryPostgresDbContext>(options =>
+        options.UseNpgsql(koneksi));
+    Console.WriteLine("Basis data: PostgreSQL cloud");
+}
+else
+{
+    string dbPath = Environment.GetEnvironmentVariable("TRASHURY_DB_PATH")
+        ?? TrashuryDbContextFactory.LokasiBasisDataBawaan();
 
-builder.Services.AddDbContext<TrashuryDbContext>(options =>
-    options.UseSqlite($"Data Source={dbPath}"));
+    string? dbDir = Path.GetDirectoryName(dbPath);
+    if (!string.IsNullOrEmpty(dbDir))
+        Directory.CreateDirectory(dbDir);
+
+    builder.Services.AddDbContext<TrashuryDbContext>(options =>
+        options.UseSqlite($"Data Source={dbPath}"));
+    Console.WriteLine($"Basis data: SQLite lokal ({dbPath})");
+}
 
 builder.Services.AddScoped<NasabahRepository>();
 builder.Services.AddScoped<TransaksiRepository>();

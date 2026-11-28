@@ -8,19 +8,29 @@ using Trashury.Services;
 // Dipakai saat demo dan pemeriksaan praktikum, bukan bagian dari aplikasi WPF.
 
 var perintah = args.FirstOrDefault() ?? "bantuan";
-var path = AmbilOpsi(args, "--db") ?? TrashuryDbContextFactory.LokasiBasisDataBawaan();
+var pathOpsi = AmbilOpsi(args, "--db");
+
+// --db selalu berarti SQLite. Tanpa --db, TRASHURY_DB_URL (bila ada)
+// mengarahkan perkakas ke PostgreSQL cloud.
+var koneksiCloud = pathOpsi is null ? TrashuryDbContextFactory.KoneksiCloudDariLingkungan() : null;
+var path = pathOpsi ?? TrashuryDbContextFactory.LokasiBasisDataBawaan();
+var target = koneksiCloud is null ? path : "PostgreSQL cloud";
+
+TrashuryDbContext Buka() => koneksiCloud is null
+    ? TrashuryDbContextFactory.Buat(path)
+    : TrashuryDbContextFactory.BuatCloud(koneksiCloud);
 
 switch (perintah)
 {
     case "migrate":
-        Migrate(path);
+        Migrate();
         break;
     case "seed":
-        Migrate(path);
-        Seed(path, segar: args.Contains("--fresh"));
+        Migrate();
+        Seed(segar: args.Contains("--fresh"));
         break;
     case "info":
-        Info(path);
+        Info();
         break;
     default:
         Console.WriteLine("""
@@ -31,26 +41,32 @@ switch (perintah)
               dotnet run --project Trashury.DbTool -- info      Tampilkan tabel dan isinya
 
             Opsi:
-              --db <path>   Gunakan berkas basis data tertentu
+              --db <path>   Gunakan berkas SQLite tertentu (mengabaikan TRASHURY_DB_URL)
               --fresh       Kosongkan data transaksi sebelum mengisi contoh
+
+            Variabel lingkungan:
+              TRASHURY_DB_URL   Connection string PostgreSQL cloud (Supabase).
+                                Bila diatur, perkakas bekerja di cloud, bukan SQLite.
             """);
         break;
 }
 
-static void Migrate(string path)
+void Migrate()
 {
-    using var db = TrashuryDbContextFactory.Buat(path);
+    using var db = Buka();
     db.Database.Migrate();
-    Console.WriteLine($"Migrasi diterapkan pada: {path}");
+    Console.WriteLine($"Migrasi diterapkan pada: {target}");
 }
 
-static void Seed(string path, bool segar)
+void Seed(bool segar)
 {
-    using var db = TrashuryDbContextFactory.Buat(path);
+    using var db = Buka();
 
     if (segar)
     {
-        db.Database.ExecuteSqlRaw("DELETE FROM DetailSetoran; DELETE FROM Transaksi; DELETE FROM Nasabah;");
+        // Nama tabel diberi tanda kutip: PostgreSQL mengubah nama tanpa kutip
+        // menjadi huruf kecil, sedangkan SQLite menerima keduanya.
+        db.Database.ExecuteSqlRaw("""DELETE FROM "DetailSetoran"; DELETE FROM "Transaksi"; DELETE FROM "Nasabah";""");
     }
 
     if (db.Nasabah.Any())
@@ -88,18 +104,26 @@ static void Seed(string path, bool segar)
     Console.WriteLine("Data contoh berhasil diisi.");
 }
 
-static void Info(string path)
+void Info()
 {
-    if (!File.Exists(path))
+    if (koneksiCloud is null && !File.Exists(path))
     {
         Console.WriteLine($"Basis data belum ada pada: {path}");
         return;
     }
 
-    using var db = TrashuryDbContextFactory.Buat(path);
+    using var db = Buka();
 
-    Console.WriteLine($"Berkas basis data : {path}");
-    Console.WriteLine($"Ukuran            : {new FileInfo(path).Length:n0} byte");
+    if (koneksiCloud is null)
+    {
+        Console.WriteLine($"Berkas basis data : {path}");
+        Console.WriteLine($"Ukuran            : {new FileInfo(path).Length:n0} byte");
+    }
+    else
+    {
+        var koneksi = db.Database.GetDbConnection();
+        Console.WriteLine($"Basis data        : PostgreSQL cloud ({koneksi.DataSource}, db {koneksi.Database})");
+    }
     Console.WriteLine($"Migrasi diterapkan: {string.Join(", ", db.Database.GetAppliedMigrations())}");
     Console.WriteLine();
 
