@@ -9,3 +9,5 @@ obj/
 *.db-wal
 publish/
 publish.zip
+trashury.env
+Submission/

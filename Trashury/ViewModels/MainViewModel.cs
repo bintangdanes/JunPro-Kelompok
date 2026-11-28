@@ -84,6 +84,8 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     public bool IsPengurus => PenggunaAktif?.IsPengurus ?? true;
+    public bool IsModeCloud => TrashuryDbContextFactory.KoneksiCloudDariLingkungan() != null;
+    public bool IsModeLokal => !IsModeCloud;
     public string NamaPeranAktif => PenggunaAktif?.NamaLengkap ?? "Pengurus Bank Sampah";
     public string SapaanDashboard
     {

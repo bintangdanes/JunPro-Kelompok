@@ -597,7 +597,16 @@
 
                 <Border Background="White" BorderBrush="#DCE5DF" BorderThickness="1" CornerRadius="10" Padding="20" Effect="{StaticResource CardShadow}">
                     <DockPanel>
-                        <Border DockPanel.Dock="Bottom" Background="#F3F7F4" BorderBrush="#DCE5DF" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,14,0,0">
+                        <Border DockPanel.Dock="Bottom" Background="#EDF7EE" BorderBrush="#C8E6C9" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,14,0,0"
+                                Visibility="{Binding IsModeCloud, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE753;" FontSize="14" Foreground="#1B5E20" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="Basis Data Cloud Aktif: PostgreSQL (Supabase) — Tersinkronisasi Otomatis" FontWeight="SemiBold" Foreground="#1B5E20" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border DockPanel.Dock="Bottom" Background="#F3F7F4" BorderBrush="#DCE5DF" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,14,0,0"
+                                Visibility="{Binding IsModeLokal, Converter={StaticResource BoolToVis}}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
