@@ -17,7 +17,7 @@ public partial class LoginWindow : Window
 
     private void Masuk_Click(object sender, RoutedEventArgs e)
     {
-        using var db = TrashuryDbContextFactory.Buat();
+        using var db = TrashuryDbContextFactory.BuatSesuaiKonfigurasi();
         var auth = new LayananAutentikasi(db);
         auth.PastikanAkunBawaan();
 

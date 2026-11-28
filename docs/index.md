@@ -93,7 +93,7 @@ Tabel struktur class dan analisis *coupling*, *cohesion*, serta *sufficiency* se
 
 ## Modul 5 — Pembuatan Basis Data
 
-TRASHURY memakai **SQLite 3** yang diakses lewat **Entity Framework Core 8**. Seluruh data tersimpan dalam satu berkas di komputer operator, tanpa server yang harus dipasang dan dirawat — sesuai sifat aplikasi yang *offline-first*.
+TRASHURY memakai **PostgreSQL di Supabase** sebagai *cloud database* dan **SQLite 3** sebagai basis data lokal, keduanya diakses lewat **Entity Framework Core 8** dengan skema yang sama. Mode cloud aktif bila variabel lingkungan `TRASHURY_DB_URL` diisi; tanpa itu, seluruh data tersimpan dalam satu berkas di komputer operator sehingga aplikasi tetap berjalan *offline*.
 
 **Empat tabel utama:**
 
