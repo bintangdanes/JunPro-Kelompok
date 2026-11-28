@@ -247,11 +247,43 @@ classDiagram
 
 ### Pilihan DBMS
 
-TRASHURY memakai **SQLite 3**, diakses lewat **Entity Framework Core 8**.
+TRASHURY memakai dua penyedia basis data dengan skema yang sama, keduanya diakses lewat **Entity Framework Core 8**:
 
-Pilihan ini mengikuti sifat produk yang *offline-first*. Bank sampah tingkat RW–kalurahan sering tidak punya koneksi internet yang stabil dan tidak punya petugas TI untuk merawat server basis data. SQLite menyimpan seluruh data dalam satu berkas di komputer operator, tanpa proses server yang harus dijalankan, tanpa instalasi terpisah, dan tanpa konfigurasi jaringan. Pencadangan cukup dengan menyalin satu berkas.
+| Mode | DBMS | Kapan dipakai |
+|---|---|---|
+| **Cloud** | **PostgreSQL** di **Supabase** | Variabel lingkungan `TRASHURY_DB_URL` diisi. Data tersimpan terpusat, dapat diakses seluruh pengurus dan `Trashury.Api`. |
+| **Lokal** | **SQLite 3** | `TRASHURY_DB_URL` kosong. Aplikasi tetap berjalan penuh tanpa internet; juga dipakai saat pengembangan dan pengujian. |
 
-MySQL atau SQL Server tidak dipilih karena keduanya menuntut server yang harus dipasang dan dijaga tetap hidup — beban yang tidak realistis untuk pengurus bank sampah, dan bertentangan dengan tujuan aplikasi ini berjalan tanpa ketergantungan internet.
+Penyedia dipilih satu kali di `TrashuryDbContextFactory` (dan `Program.cs` pada `Trashury.Api`). Repository dan layanan hanya mengenal `TrashuryDbContext`, sehingga tidak satu baris pun di lapisan layanan berubah saat penyedia ditukar. Masing-masing penyedia punya set migrasinya sendiri: `Data/Migrations/` untuk SQLite dan `Data/Migrations/Postgres/` untuk PostgreSQL (lewat subclass `TrashuryPostgresDbContext`).
+
+**Mengapa PostgreSQL di Supabase untuk cloud.** PostgreSQL punya tipe `numeric` presisi tetap untuk nilai rupiah, Supabase menyediakan paket gratis yang cukup untuk satu bank sampah, dan dasbornya memudahkan pengurus memeriksa tabel tanpa perkakas tambahan. Koneksi ke cloud selalu memakai SSL.
+
+**Mengapa SQLite tetap dipertahankan.** Pilihan ini mengikuti sifat produk yang *offline-first*. Bank sampah tingkat RW–kalurahan sering tidak punya koneksi internet yang stabil dan tidak punya petugas TI untuk merawat server basis data. SQLite menyimpan seluruh data dalam satu berkas di komputer operator, tanpa proses server yang harus dijalankan, tanpa instalasi terpisah, dan tanpa konfigurasi jaringan. Pencadangan cukup dengan menyalin satu berkas.
+
+MySQL atau SQL Server yang dipasang sendiri tidak dipilih karena keduanya menuntut server yang harus dirawat dan dijaga tetap hidup — beban yang tidak realistis untuk pengurus bank sampah. Layanan terkelola seperti Supabase menghilangkan beban itu untuk mode cloud.
+
+### Menghubungkan ke Supabase
+
+1. Buat proyek di [supabase.com](https://supabase.com), lalu buka **Connect** → **Session pooler** dan salin URI-nya (`postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres`). *Session pooler* dipilih karena mendukung jaringan IPv4.
+2. Atur variabel lingkungan — **jangan pernah menulis connection string ke berkas yang di-commit**:
+
+   ```bash
+   # macOS / Linux
+   export TRASHURY_DB_URL="postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres"
+
+   # Windows PowerShell
+   $env:TRASHURY_DB_URL = "postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres"
+   ```
+
+   Untuk `Trashury.Api` dapat juga memakai user-secrets: `dotnet user-secrets set TRASHURY_DB_URL "<uri>" --project Trashury.Api`.
+3. Buat tabel dan isi data contoh di cloud:
+
+   ```bash
+   dotnet run --project Trashury.DbTool -- seed --fresh
+   dotnet run --project Trashury.DbTool -- info   # baris pertama: "Basis data : PostgreSQL cloud (...)"
+   ```
+
+Bila sandi mengandung karakter khusus seperti `@` atau `:`, tuliskan dalam bentuk *URL-encoded* (`%40`, `%3A`). Format key=value Npgsql (`Host=...;Username=...;Password=...`) juga diterima.
 
 ### Lokasi Berkas Basis Data
 
@@ -406,7 +438,10 @@ Angka di atas dapat ditelusuri: Budi menyetor 3,5 kg PET (Rp14.000) dan 5 kg kar
 
 ```bash
 dotnet tool install --global dotnet-ef --version 8.0.11
-dotnet ef migrations add NamaPerubahan --project Trashury.Core --output-dir Data/Migrations
+
+# Perubahan skema harus dibuat untuk kedua penyedia
+dotnet ef migrations add NamaPerubahan --project Trashury.Core --context TrashuryDbContext --output-dir Data/Migrations
+dotnet ef migrations add NamaPerubahan --project Trashury.Core --context TrashuryPostgresDbContext --output-dir Data/Migrations/Postgres
 ```
 
 Migrasi diterapkan otomatis lewat `Database.Migrate()` saat aplikasi dijalankan, jadi pengguna tidak perlu melakukan langkah manual apa pun.
@@ -422,6 +457,7 @@ Per commit terakhir, berikut kondisi nyata kode di repo ini:
 | `Models/` (7 class) | ✅ Selesai | Enkapsulasi saldo, inheritance, polymorphism sudah berjalan |
 | `Interfaces/` (3 interface) | ✅ Selesai | Kontrak repository, kalkulator dampak, klasifikasi |
 | `TrashuryDbContext` + migrasi | ✅ Selesai | SQLite, 4 tabel, seed kategori bawaan |
+| Cloud database (`TrashuryPostgresDbContext`) | ✅ Selesai | PostgreSQL Supabase lewat `TRASHURY_DB_URL`; migrasi terpisah, dipakai DbTool dan `Trashury.Api` |
 | `NasabahRepository`, `TransaksiRepository`, `KategoriSampahRepository` | ✅ Selesai | Menulis ke SQLite; `SimpanPerubahan()` memanggil `SaveChanges()` |
 | `KalkulatorCO2e` | ✅ Selesai | Menjumlahkan CO2e seluruh baris setoran |
 | `LayananTransaksi` | ✅ Selesai | `CatatSetoran()` dan `ProsesPenarikan()` tersimpan permanen |
@@ -480,6 +516,7 @@ dotnet publish Trashury/Trashury.csproj -c Release -r win-x64 --self-contained t
 - **Akun login bawaan (RBAC, PBKDF2-SHA256):**
   - **Pengurus (akses penuh):** username `pengurus`, password `pengurus123`
   - **Operator (meja setoran):** username `operator`, password `operator123`
+- **Cloud database:** connection string Supabase (`TRASHURY_DB_URL`) dibagikan ke anggota kelompok lewat kanal privat, tidak pernah lewat repository.
 - **Data awal:** lima kategori sampah ter-*seed* otomatis saat basis data pertama kali dibuat.
 - **Data contoh demo:** jalankan `dotnet run --project Trashury.DbTool -- seed --fresh` untuk mengisi 3 nasabah dan 4 transaksi, lalu `-- info` untuk menampilkan isinya.
 
@@ -492,8 +529,8 @@ JunPro-Kelompok/
 ├── Trashury.Core/              # net8.0 — logika bisnis, lintas platform
 │   ├── Models/                 # Entitas domain (Nasabah, Transaksi, ...)
 │   ├── Interfaces/             # IRepository<T>, IKalkulatorDampak, IKlasifikasiSampah
-│   ├── Data/                   # TrashuryDbContext, factory, dan migrasi EF Core
-│   ├── Repositories/           # Implementasi akses data di atas SQLite
+│   ├── Data/                   # DbContext SQLite & PostgreSQL, factory, migrasi EF Core
+│   ├── Repositories/           # Implementasi akses data (SQLite atau PostgreSQL)
 │   └── Services/               # Transaksi, laporan, CO2e, klasifikasi
 ├── Trashury/                   # net8.0-windows — aplikasi desktop WPF (MVVM)
 │   ├── App.xaml / MainWindow.xaml / KameraWindow.xaml
